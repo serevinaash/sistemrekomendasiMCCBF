@@ -60,6 +60,46 @@ class MCCBFEngine:
         return text.strip()
     
     
+    def preprocess_user_input(self, text):
+        """
+        Preprocessing khusus untuk input user dengan handling negatif
+        
+        Transformasi:
+        - "tanpa tempe" → hapus kata "tempe" dari pencarian
+        - "tidak pedas" → cari "tidak pedas" atau favoritkan menu tanpa kata "pedas"
+        - "rendah lemak" → tambah boost untuk "rendah lemak"
+        """
+        text = text.lower().strip()
+        
+        # Deteksi kata negatif
+        negative_keywords = ['tanpa', 'tidak', 'no', 'bebas', 'tanpai']
+        
+        # Split jadi kata-kata
+        words = text.split()
+        
+        # Identifikasi pola negatif
+        negative_terms = []
+        positive_terms = []
+        
+        i = 0
+        while i < len(words):
+            word = words[i]
+            
+            # Jika ketemu kata negatif, ambil kata berikutnya
+            if word in negative_keywords and i + 1 < len(words):
+                negative_terms.append(words[i + 1])
+                i += 2  # Skip 2 kata
+            else:
+                positive_terms.append(word)
+                i += 1
+        
+        return {
+            'positive': ' '.join(positive_terms),
+            'negative': negative_terms,
+            'original': text
+        }
+    
+    
     def categorical_similarity(self, user_value, menu_value):
         """
         Rule-based similarity untuk kategori (exact/partial match)

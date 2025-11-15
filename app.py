@@ -134,11 +134,63 @@ karbo_filter_mode = st.sidebar.radio(
 st.sidebar.caption(f"Mode: {'🟢 Fleksibel' if karbo_filter_mode == 'Fleksibel' else '🔴 Strict'}")
 
 # 4️⃣ Deskripsi Preferensi (Text Input)
+
+# Quick select tags (suggested preferences)
+st.sidebar.markdown("**🏷️ Tag Populer (klik untuk tambahkan):**")
+
+col1, col2 = st.sidebar.columns(2)
+
+with col1:
+    st.caption("✅ **Yang Diinginkan:**")
+    if st.button("🟢 Rendah Lemak", key="tag1"):
+        deskripsi_pref = "rendah lemak"
+    if st.button("🟢 Tinggi Protein", key="tag2"):
+        deskripsi_pref = "tinggi protein"
+    if st.button("🟢 Kukus", key="tag3"):
+        deskripsi_pref = "kukus"
+
+with col2:
+    st.caption("❌ **Yang Dihindari:**")
+    if st.button("🔴 Tanpa Santan", key="tag4"):
+        deskripsi_pref = "tanpa santan"
+    if st.button("🔴 Tanpa Tempe", key="tag5"):
+        deskripsi_pref = "tanpa tempe"
+    if st.button("🔴 Tidak Pedas", key="tag6"):
+        deskripsi_pref = "tidak pedas"
+
 deskripsi_pref = st.sidebar.text_area(
-    "Deskripsi Preferensi Lainnya",
+    "Atau Ketik Manual:",
     value="rendah lemak tanpa santan",
-    help="Contoh: 'rendah lemak', 'tanpa santan', 'tinggi protein', dll"
+    height=80,
+    help="""
+    💡 **Tips Pencarian:**
+    
+    ✅ **Yang Diinginkan (Positif):**
+    - "rendah lemak"
+    - "tinggi protein"
+    - "kukus"
+    - "pedas"
+    
+    ✅ **Yang Dihindari (Negatif):**
+    - "tanpa santan"
+    - "tanpa tempe"
+    - "tidak pedas"
+    - "bebas MSG"
+    
+    ⚠️ **Hindari:**
+    - Typo (misal: "renda" ❌, gunakan "rendah" ✅)
+    - Bahasa campuran (gunakan 1 bahasa saja)
+    """
 )
+
+# Tampilkan preview parsing (opsional, untuk debug)
+if st.sidebar.checkbox("🔍 Preview Parsing Input", value=False):
+    if engine and deskripsi_pref.strip():
+        parsed = engine.preprocess_user_input(deskripsi_pref)
+        st.sidebar.json({
+            "Kata Positif": parsed['positive'],
+            "Kata Negatif (Dihindari)": parsed['negative']
+        })
 
 # 5️⃣ Pilih Skenario Bobot (Advanced)
 st.sidebar.markdown("---")
@@ -161,6 +213,7 @@ if skenario_bobot == "Bobot Seimbang":
         'karbohidrat': 0.20,
         'kalori': 0.30
     }
+    st.sidebar.caption("📊 Semua kriteria diperhitungkan secara proporsional")
 else:  # Fokus Kalori
     weights = {
         'deskripsi': 0.25,
@@ -168,10 +221,18 @@ else:  # Fokus Kalori
         'karbohidrat': 0.10,
         'kalori': 0.50
     }
+    st.sidebar.caption("📊 Prioritas utama pada kesesuaian kalori (50%)")
 
-# Tampilkan bobot yang digunakan
-with st.sidebar.expander("Lihat Bobot yang Digunakan"):
-    st.json(weights)
+# Tampilkan bobot yang digunakan dengan visual yang lebih baik
+with st.sidebar.expander("📋 Lihat Detail Bobot Kriteria"):
+    st.markdown("**Bobot yang Digunakan:**")
+    
+    # Tampilkan sebagai progress bar untuk visualisasi
+    for kriteria, bobot in weights.items():
+        st.write(f"**{kriteria.title()}**: {bobot:.0%}")
+        st.progress(bobot)
+    
+    st.caption("💡 Total bobot = 100%")
 
 # Jumlah rekomendasi
 top_n = st.sidebar.slider(
@@ -215,6 +276,18 @@ if generate_btn:
                     karbo_strict_mode=(karbo_filter_mode == "Strict")  # NEW parameter
                 )
                 
+                # ✨ VALIDASI: Cek apakah input deskripsi valid
+                if deskripsi_pref.strip():
+                    parsed = engine.preprocess_user_input(deskripsi_pref)
+                    
+                    # Warning jika ada kata negatif terdeteksi
+                    if parsed['negative']:
+                        st.info(f"ℹ️ **Kata yang dihindari terdeteksi:** {', '.join(parsed['negative'])}")
+                    
+                    # Warning jika input terlalu pendek
+                    if len(parsed['positive'].split()) == 0:
+                        st.warning("⚠️ Input deskripsi hanya berisi kata negatif. Rekomendasi berdasarkan kriteria lain.")
+                
                 # Tampilkan ringkasan input user
                 st.success("✅ Rekomendasi berhasil dibuat!")
                 
@@ -224,9 +297,17 @@ if generate_btn:
                 with col2:
                     st.metric("Jenis Lauk", kategori_lauk)
                 with col3:
-                    st.metric("Sumber Karbo", len(pilihan_karbo))
+                    # Tampilkan jumlah pilihan karbo yang dipilih user
+                    jumlah_karbo = len(pilihan_karbo) if pilihan_karbo else 0
+                    st.metric("Pilihan Karbo", f"{jumlah_karbo} jenis")
                 with col4:
-                    st.metric("Skenario", skenario_bobot)
+                    st.metric("Skenario", skenario_bobot.split()[0])  # "Bobot" atau "Fokus"
+                
+                # ✨ Tampilkan detail pilihan karbohidrat user
+                if pilihan_karbo:
+                    st.caption(f"🍚 **Karbohidrat yang dipilih:** {', '.join([k.title() for k in pilihan_karbo])}")
+                else:
+                    st.caption("🍚 **Karbohidrat:** Semua (tidak ada filter)")
                 
                 st.markdown("---")
                 st.subheader(f"🏆 Top-{top_n} Menu yang Direkomendasikan")
