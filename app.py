@@ -84,6 +84,19 @@ pilihan_karbo = st.sidebar.multiselect(
     help="Anda bisa memilih lebih dari satu"
 )
 
+# Mode filtering (NEW)
+karbo_filter_mode = st.sidebar.radio(
+    "Mode Filter Karbohidrat",
+    options=["Fleksibel", "Strict"],
+    help="""
+    • Fleksibel: Menu dengan minimal 1 pilihan karbo yang cocok akan muncul
+    • Strict: Hanya menu yang punya SEMUA pilihan karbo user
+    """,
+    horizontal=True
+)
+
+st.sidebar.caption(f"Mode: {'🟢 Fleksibel' if karbo_filter_mode == 'Fleksibel' else '🔴 Strict'}")
+
 # 4️⃣ Deskripsi Preferensi (Text Input)
 deskripsi_pref = st.sidebar.text_area(
     "Deskripsi Preferensi Lainnya",
@@ -133,6 +146,12 @@ top_n = st.sidebar.slider(
     help="Berapa menu yang ingin ditampilkan?"
 )
 
+# Debug mode
+show_debug = st.sidebar.checkbox(
+    "🔍 Tampilkan Detail Skor",
+    help="Tampilkan breakdown skor similarity per kriteria"
+)
+
 # ========================================
 # TOMBOL UNTUK GENERATE REKOMENDASI
 # ========================================
@@ -156,7 +175,8 @@ if generate_btn:
                     sumber_karbo_list=pilihan_karbo,
                     deskripsi_preferensi=deskripsi_pref,
                     weights=weights,
-                    top_n=top_n
+                    top_n=top_n,
+                    karbo_strict_mode=(karbo_filter_mode == "Strict")  # NEW parameter
                 )
                 
                 # Tampilkan ringkasan input user
@@ -175,6 +195,10 @@ if generate_btn:
                 st.markdown("---")
                 st.subheader(f"🏆 Top-{top_n} Menu yang Direkomendasikan")
                 
+                # Cek apakah ada skor negatif (indikasi bug)
+                if (recommendations['Skor_Similarity'] < 0).any():
+                    st.error("⚠️ PERINGATAN: Terdeteksi skor negatif! Mungkin ada bug di perhitungan.")
+                
                 # Tampilkan hasil dalam format card
                 for idx, row in recommendations.iterrows():
                     rank = row['Rank']
@@ -182,7 +206,31 @@ if generate_btn:
                     nama_menu = row.get('Nama_Menu', 'N/A')
                     kategori = row.get('Kategori', 'N/A')
                     kalori = row.get('Kalori_(kcal)', 'N/A')
-                    karbo = row.get('Sumber_Karbohidrat', 'N/A')
+                    
+                    # ✨ Format karbohidrat dengan koma
+                    karbo_raw = row.get('Sumber_Karbohidrat', 'N/A')
+                    if karbo_raw and karbo_raw != 'N/A':
+                        # Split by space, capitalize, join with comma
+                        karbo_list = []
+                        karbo_str = str(karbo_raw).lower()
+                        
+                        # Handle multi-word items like "nasi merah"
+                        multi_word = ['nasi merah', 'nasi putih', 'nasi coklat', 'roti gandum']
+                        for item in multi_word:
+                            if item in karbo_str:
+                                karbo_list.append(item.title())
+                                karbo_str = karbo_str.replace(item, '')
+                        
+                        # Handle single words
+                        single_words = [w.strip().title() for w in karbo_str.split() if len(w.strip()) > 2]
+                        karbo_list.extend(single_words)
+                        
+                        # Remove duplicates
+                        karbo_list = list(dict.fromkeys(karbo_list))
+                        karbo = ', '.join(karbo_list) if karbo_list else 'N/A'
+                    else:
+                        karbo = 'N/A'
+                    
                     deskripsi = row.get('Deskripsi_Singkat', 'N/A')
                     
                     # Card dengan styling
@@ -195,7 +243,15 @@ if generate_btn:
                         with col_info:
                             st.markdown(f"**{nama_menu}**")
                             st.caption(f"Skor Kemiripan: {skor:.3f} | Kategori: {kategori} | Kalori: {kalori} kcal")
-                            st.write(f"🍚 Karbohidrat: {karbo}")
+                            
+                            # Tampilkan karbohidrat sebagai pills/badges
+                            if karbo != 'N/A':
+                                karbo_items = [k.strip() for k in karbo.split(',')]
+                                karbo_badges = ' '.join([f'`{item}`' for item in karbo_items])
+                                st.markdown(f"🍚 **Pilihan Karbohidrat:** {karbo_badges}")
+                            else:
+                                st.write(f"🍚 Karbohidrat: {karbo}")
+                            
                             st.write(f"📝 {deskripsi}")
                         
                         st.markdown("---")

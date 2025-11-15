@@ -64,9 +64,54 @@ def clean_text(text):
     return text.strip()
 
 # ========================================
+# STEP 3.5: PARSING SUMBER KARBOHIDRAT
+# ========================================
+print("\n🍚 STEP 3.5: Parsing sumber karbohidrat...")
+
+def parse_karbohidrat(karbo_str):
+    """
+    Parse string karbohidrat jadi list yang bersih
+    Input: "kentang nasi merah nasi putih"
+    Output: ['kentang', 'nasi merah', 'nasi putih']
+    """
+    karbo_str = str(karbo_str).lower().strip()
+    
+    # Definisi pola karbo yang valid
+    valid_karbo = [
+        'nasi merah', 'nasi putih', 'nasi coklat',
+        'kentang', 'ubi', 'jagung', 'roti gandum', 'quinoa'
+    ]
+    
+    found = []
+    for karbo in valid_karbo:
+        if karbo in karbo_str:
+            found.append(karbo)
+            karbo_str = karbo_str.replace(karbo, '')  # Hapus yang sudah match
+    
+    # Tambahkan sisa token (jika ada)
+    remaining_tokens = [t.strip() for t in karbo_str.split() if len(t.strip()) > 2]
+    found.extend(remaining_tokens)
+    
+    return list(set(found))  # Remove duplicates
+
+# Apply parsing ke dataset
+if 'Sumber_Karbohidrat' in df.columns:
+    df['karbo_list'] = df['Sumber_Karbohidrat'].apply(parse_karbohidrat)
+    df['karbo_count'] = df['karbo_list'].apply(len)
+    
+    print(f"✅ Karbohidrat berhasil diparsing")
+    print(f"   • Rata-rata jumlah opsi per menu: {df['karbo_count'].mean():.1f}")
+    print(f"   • Contoh hasil parsing:")
+    for i in range(min(3, len(df))):
+        print(f"      '{df['Sumber_Karbohidrat'].iloc[i]}' → {df['karbo_list'].iloc[i]}")
+else:
+    df['karbo_list'] = [[] for _ in range(len(df))]
+    print("⚠️  Kolom 'Sumber_Karbohidrat' tidak ditemukan")
+
+# ========================================
 # STEP 4: BUAT CORPUS
 # ========================================
-print("\n📝 STEP 3: Membuat corpus...")
+print("\n📝 STEP 4: Membuat corpus...")
 
 text_cols = ['Nama_Menu', 'Kategori', 'Sumber_Karbohidrat',
              'Bahan_Utama_/_Pendamping', 'Deskripsi_Singkat']
@@ -86,12 +131,28 @@ print(f"   Contoh corpus:\n   {df['corpus'].iloc[0][:100]}...")
 # ========================================
 # STEP 5: NORMALISASI KALORI
 # ========================================
-print("\n🔢 STEP 4: Normalisasi kalori...")
+print("\n🔢 STEP 5: Normalisasi kalori...")
 
 if 'Kalori_(kcal)' in df.columns:
-    scaler = MinMaxScaler()
-    df['kalori_normalized'] = scaler.fit_transform(df[['Kalori_(kcal)']])
-    print(f"✅ Kalori berhasil dinormalisasi (range: {df['kalori_normalized'].min():.3f} - {df['kalori_normalized'].max():.3f})")
+    # Tampilkan statistik kalori
+    print(f"   • Kalori min: {df['Kalori_(kcal)'].min()}")
+    print(f"   • Kalori max: {df['Kalori_(kcal)'].max()}")
+    print(f"   • Kalori mean: {df['Kalori_(kcal)'].mean():.1f}")
+    print(f"   • Kalori unique values: {df['Kalori_(kcal)'].nunique()}")
+    
+    # Cek jika semua kalori sama
+    if df['Kalori_(kcal)'].nunique() == 1:
+        print("   ⚠️  WARNING: Semua menu punya kalori yang sama!")
+        print("   💡 Similarity kalori akan selalu 1.0")
+        df['kalori_normalized'] = 1.0
+        scaler = MinMaxScaler()  # Dummy scaler
+        scaler.fit(df[['Kalori_(kcal)']])
+    else:
+        # Normalisasi normal
+        scaler = MinMaxScaler()
+        df['kalori_normalized'] = scaler.fit_transform(df[['Kalori_(kcal)']])
+        print(f"✅ Kalori berhasil dinormalisasi")
+        print(f"   • Range normalized: {df['kalori_normalized'].min():.3f} - {df['kalori_normalized'].max():.3f}")
 else:
     print("❌ Kolom 'Kalori_(kcal)' tidak ditemukan!")
     exit()
