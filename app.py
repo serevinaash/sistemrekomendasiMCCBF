@@ -59,28 +59,64 @@ with st.expander("ℹ️ Tentang Sistem Ini"):
 # ========================================
 st.sidebar.header("🎯 Masukkan Preferensi Anda")
 
-# 1️⃣ Input Kalori
+# Ambil range kalori dari dataset
+if engine:
+    kalori_min = int(engine.df_train['Kalori_(kcal)'].min())
+    kalori_max = int(engine.df_train['Kalori_(kcal)'].max())
+    kalori_mean = int(engine.df_train['Kalori_(kcal)'].mean())
+    
+    # Tampilkan info range kalori dengan visual
+    st.sidebar.caption(f"📊 **Range Kalori Menu:**")
+    col1, col2, col3 = st.sidebar.columns(3)
+    col1.metric("Min", f"{kalori_min}")
+    col2.metric("Avg", f"{kalori_mean}")
+    col3.metric("Max", f"{kalori_max}")
+else:
+    # Fallback jika engine belum load
+    kalori_min, kalori_max, kalori_mean = 300, 600, 400
+
+# 1️⃣ Input Kalori (Dynamic Range)
 kalori_target = st.sidebar.slider(
     "Target Kalori (kcal)",
-    min_value=300,
-    max_value=600,
-    value=400,
-    step=10,
-    help="Pilih target kalori harian yang Anda inginkan"
+    min_value=kalori_min,
+    max_value=kalori_max,
+    value=kalori_mean,  # Default value = rata-rata kalori di dataset
+    step=5,
+    help=f"Pilih target kalori (tersedia: {kalori_min}-{kalori_max} kcal)"
 )
 
-# 2️⃣ Pilih Kategori Lauk
+# 2️⃣ Pilih Kategori Lauk (Dynamic dari Dataset)
+if engine:
+    kategori_options = sorted(engine.df_train['Kategori'].unique().tolist())
+else:
+    kategori_options = ["Ayam", "Ikan", "Sapi", "Lainnya"]
+
 kategori_lauk = st.sidebar.selectbox(
     "Pilih Jenis Lauk",
-    options=["Ayam", "Ikan", "Daging"],
+    options=kategori_options,
     help="Pilih satu jenis lauk favorit Anda"
 )
 
-# 3️⃣ Pilih Sumber Karbohidrat (Multi-select)
+# 3️⃣ Pilih Sumber Karbohidrat (Multi-select) - Dynamic dari Dataset
+if engine and 'karbo_list' in engine.df_train.columns:
+    # Ekstrak semua opsi karbo unik dari dataset
+    all_karbo = []
+    for karbo_list_str in engine.df_train['karbo_list'].dropna():
+        try:
+            import ast
+            karbo_items = ast.literal_eval(karbo_list_str) if isinstance(karbo_list_str, str) else karbo_list_str
+            all_karbo.extend(karbo_items)
+        except:
+            pass
+    karbo_options = sorted(list(set([k.strip() for k in all_karbo if k])))
+else:
+    # Fallback manual
+    karbo_options = ["nasi merah", "nasi putih", "kentang", "ubi", "jagung"]
+
 pilihan_karbo = st.sidebar.multiselect(
     "Pilih Sumber Karbohidrat",
-    options=["nasi merah", "nasi putih", "kentang", "ubi", "jagung"],
-    default=["nasi merah"],
+    options=karbo_options,
+    default=[karbo_options[0]] if karbo_options else [],
     help="Anda bisa memilih lebih dari satu"
 )
 
