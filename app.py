@@ -48,7 +48,7 @@ with st.expander("ℹ️ Tentang Sistem Ini"):
     
     - 🔢 **Kebutuhan Kalori** (target harian Anda)
     - 🍗 **Jenis Lauk** (Ayam, Ikan, Daging)
-    - 🍚 **Sumber Karbohidrat** (Nasi Merah, Kentang, dll)
+    - 🍚 **Sumber Karbohidrat yang di pilih** (Nasi Merah, Kentang, dll)
     - 📝 **Preferensi Deskripsi** (rendah lemak, tanpa santan, dll)
     
     Sistem akan memberikan **Top-5 menu** yang paling sesuai dengan profil Anda.
