@@ -48,7 +48,7 @@ with st.expander("ℹ️ Tentang Sistem Ini"):
     
     - 🔢 **Kebutuhan Kalori** (target harian Anda)
     - 🍗 **Jenis Lauk** (Ayam, Ikan, Daging)
-    - 🍚 **Sumber Karbohidrat yang di pilih** (Nasi Merah, Kentang, dll)
+    - 🍚 **Sumber Karbohidrat** (Nasi Merah, Kentang, dll)
     - 📝 **Preferensi Deskripsi** (rendah lemak, tanpa santan, dll)
     
     Sistem akan memberikan **Top-5 menu** yang paling sesuai dengan profil Anda.
@@ -198,30 +198,39 @@ st.sidebar.subheader("⚙️ Pengaturan Lanjutan")
 
 skenario_bobot = st.sidebar.radio(
     "Pilih Skenario Pembobotan",
-    options=["Bobot Seimbang", "Fokus Kalori"],
+    options=["Mode Seimbang", "Mode Fokus Deskripsi", "Mode Fokus Lauk"],
     help="""
-    - Bobot Seimbang: Semua kriteria diperhitungkan secara merata
-    - Fokus Kalori: Prioritas utama pada kesesuaian kalori
+    🟢 Mode Seimbang: Semua kriteria diperhitungkan proporsional (paling akurat)
+    🟠 Mode Fokus Deskripsi: Prioritas pada preferensi rasa & cara masak (untuk user detail)
+    🔵 Mode Fokus Lauk: Prioritas pada jenis protein (untuk user picky eater)
     """
 )
 
 # Mapping skenario ke bobot
-if skenario_bobot == "Bobot Seimbang":
+if skenario_bobot == "Mode Seimbang":
     weights = {
-        'deskripsi': 0.25,
+        'deskripsi': 0.45,
         'kategori': 0.25,
         'karbohidrat': 0.20,
-        'kalori': 0.30
+        'kalori': 0.10
     }
-    st.sidebar.caption("📊 Semua kriteria diperhitungkan secara proporsional")
-else:  # Fokus Kalori
+    st.sidebar.caption("🟢 Semua kriteria diperhitungkan secara proporsional (Rekomendasi)")
+elif skenario_bobot == "Mode Fokus Deskripsi":
     weights = {
-        'deskripsi': 0.25,
-        'kategori': 0.15,
-        'karbohidrat': 0.10,
-        'kalori': 0.50
+        'deskripsi': 0.50,
+        'kategori': 0.20,
+        'karbohidrat': 0.20,
+        'kalori': 0.10
     }
-    st.sidebar.caption("📊 Prioritas utama pada kesesuaian kalori (50%)")
+    st.sidebar.caption("🟠 Prioritas pada preferensi rasa & cara pengolahan")
+else:  # Mode Fokus Lauk
+    weights = {
+        'deskripsi': 0.20,
+        'kategori': 0.50,
+        'karbohidrat': 0.20,
+        'kalori': 0.10
+    }
+    st.sidebar.caption("🔵 Prioritas pada kesesuaian jenis protein/lauk")
 
 # Tampilkan bobot yang digunakan dengan visual yang lebih baik
 with st.sidebar.expander("📋 Lihat Detail Bobot Kriteria"):
@@ -245,8 +254,8 @@ top_n = st.sidebar.slider(
 
 # Debug mode
 show_debug = st.sidebar.checkbox(
-    "🔍 Tampilkan Detail Skor",
-    help="Tampilkan breakdown skor similarity per kriteria"
+    "🔍 Mode Debug (Tampilkan Detail Skor)",
+    help="Tampilkan breakdown skor similarity per kriteria untuk troubleshooting"
 )
 
 # ========================================
@@ -293,15 +302,15 @@ if generate_btn:
                 
                 col1, col2, col3, col4 = st.columns(4)
                 with col1:
-                    st.metric("Target Kalori", f"{kalori_target} kcal")
+                    st.metric("🔥 Target Kalori", f"{kalori_target} kcal")
                 with col2:
-                    st.metric("Jenis Lauk", kategori_lauk)
+                    st.metric("🍖 Jenis Lauk", kategori_lauk.title())
                 with col3:
                     # Tampilkan jumlah pilihan karbo yang dipilih user
                     jumlah_karbo = len(pilihan_karbo) if pilihan_karbo else 0
-                    st.metric("Pilihan Karbo", f"{jumlah_karbo} jenis")
+                    st.metric("🍚 Pilihan Karbo", f"{jumlah_karbo} jenis")
                 with col4:
-                    st.metric("Skenario", skenario_bobot.split()[0])  # "Bobot" atau "Fokus"
+                    st.metric("⚖️ Skenario", skenario_bobot.split()[0])  # "Bobot" atau "Fokus"
                 
                 # ✨ Tampilkan detail pilihan karbohidrat user
                 if pilihan_karbo:
@@ -315,6 +324,47 @@ if generate_btn:
                 # Cek apakah ada skor negatif (indikasi bug)
                 if (recommendations['Skor_Similarity'] < 0).any():
                     st.error("⚠️ PERINGATAN: Terdeteksi skor negatif! Mungkin ada bug di perhitungan.")
+                
+                # ✨ TAMBAHAN: Validasi Kalori
+                kalori_recommendations = recommendations['Kalori_(kcal)'].tolist()
+                min_kal_result = min(kalori_recommendations)
+                max_kal_result = max(kalori_recommendations)
+                
+                st.caption(f"📊 **Range kalori hasil:** {min_kal_result} - {max_kal_result} kcal")
+                
+                # Warning jika tidak ada menu dengan kalori exact
+                if kalori_target not in kalori_recommendations:
+                    closest_kalori = min(kalori_recommendations, key=lambda x: abs(x - kalori_target))
+                    diff = abs(closest_kalori - kalori_target)
+                    
+                    st.warning(
+                        f"⚠️ **Tidak ada menu dengan kalori {kalori_target} kcal** yang sesuai kriteria lain "
+                        f"(Lauk: {kategori_lauk.title()}, Karbo: {', '.join([k.title() for k in pilihan_karbo])}).\n\n"
+                        f"Menu terdekat: **{closest_kalori} kcal** (selisih {diff} kcal)"
+                    )
+                    
+                    # Saran alternatif
+                    with st.expander("💡 Lihat Saran Alternatif"):
+                        st.write("**Untuk mendapatkan menu dengan kalori lebih sesuai, coba:**")
+                        st.write("1. ✅ Ubah **jenis lauk** (misal: dari Sapi → Ayam atau Ikan)")
+                        st.write("2. ✅ Gunakan **Mode Fleksibel** untuk karbohidrat")
+                        st.write("3. ✅ Kurangi jumlah pilihan karbohidrat (pilih 1-2 saja)")
+                        st.write("4. ✅ Sesuaikan target kalori ke range yang lebih umum (390-400 kcal)")
+                        
+                        # Tampilkan statistik kalori per kategori
+                        if engine:
+                            st.markdown("---")
+                            st.write("**📊 Statistik Kalori per Kategori Lauk:**")
+                            for kat in engine.df_train['Kategori'].unique():
+                                kat_data = engine.df_train[engine.df_train['Kategori'] == kat]['Kalori_(kcal)']
+                                st.write(f"- **{kat.title()}:** {kat_data.min()}-{kat_data.max()} kcal (rata-rata: {kat_data.mean():.0f})")
+                
+                # Info tambahan untuk mode strict
+                if karbo_filter_mode == "Strict" and pilihan_karbo:
+                    st.info(
+                        f"ℹ️ **Mode Strict aktif:** Sistem hanya menampilkan menu yang memiliki "
+                        f"pilihan karbohidrat: **{', '.join([k.title() for k in pilihan_karbo])}**"
+                    )
                 
                 # Tampilkan hasil dalam format card
                 for idx, row in recommendations.iterrows():
@@ -359,13 +409,27 @@ if generate_btn:
                         
                         with col_info:
                             st.markdown(f"**{nama_menu}**")
-                            st.caption(f"Skor Kemiripan: {skor:.3f} | Kategori: {kategori} | Kalori: {kalori} kcal")
+                            st.caption(f"Skor Kemiripan: {skor:.3f} | Kategori: {kategori.title()} | Kalori: {kalori} kcal")
                             
                             # Tampilkan karbohidrat sebagai pills/badges
                             if karbo != 'N/A':
                                 karbo_items = [k.strip() for k in karbo.split(',')]
-                                karbo_badges = ' '.join([f'`{item}`' for item in karbo_items])
-                                st.markdown(f"🍚 **Pilihan Karbohidrat:** {karbo_badges}")
+                                
+                                # Highlight karbo yang sesuai pilihan user
+                                karbo_display = []
+                                user_karbo_lower = [k.lower() for k in pilihan_karbo]
+                                
+                                for item in karbo_items:
+                                    if item.lower() in user_karbo_lower:
+                                        # Tambahkan checkmark untuk yang cocok
+                                        karbo_display.append(f"`{item}` ✅")
+                                    else:
+                                        karbo_display.append(f"`{item}`")
+                                
+                                st.markdown(f"🍚 **Pilihan Karbohidrat:** {' '.join(karbo_display)}")
+                                
+                                # Info jumlah opsi
+                                st.caption(f"   └─ {len(karbo_items)} pilihan tersedia")
                             else:
                                 st.write(f"🍚 Karbohidrat: {karbo}")
                             
@@ -382,6 +446,36 @@ if generate_btn:
                     mime='text/csv',
                 )
                 
+                # ✨ DEBUG MODE: Tampilkan skor per kriteria
+                if show_debug:
+                    st.markdown("---")
+                    st.subheader("🔍 Debug Mode: Detail Perhitungan")
+                    
+                    # Hitung ulang similarity untuk menu yang direkomendasikan
+                    st.write("**Skor Similarity Per Kriteria (Top-5 Menu):**")
+                    
+                    debug_data = []
+                    for idx, row in recommendations.iterrows():
+                        menu_idx = engine.df_train[engine.df_train['Nama_Menu'] == row['Nama_Menu']].index[0]
+                        
+                        # Ambil kalori normalized
+                        kalori_menu = engine.df_train.loc[menu_idx, 'Kalori_(kcal)']
+                        kalori_diff = abs(kalori_menu - kalori_target)
+                        
+                        debug_data.append({
+                            'Rank': row['Rank'],
+                            'Nama Menu': row['Nama_Menu'],
+                            'Kalori Menu': kalori_menu,
+                            'Diff Kalori': kalori_diff,
+                            'Skor Total': f"{row['Skor_Similarity']:.3f}"
+                        })
+                    
+                    st.dataframe(pd.DataFrame(debug_data), use_container_width=True)
+                    
+                    st.caption("💡 **Interpretasi:**")
+                    st.caption("- Diff Kalori = Selisih antara target kalori Anda dengan kalori menu")
+                    st.caption("- Semakin kecil Diff Kalori, semakin tinggi skor kalori similarity")
+                
             except Exception as e:
                 st.error(f"❌ Terjadi kesalahan: {str(e)}")
                 st.exception(e)
@@ -393,10 +487,31 @@ else:
     # Tampilkan preview dataset
     st.subheader("📊 Preview Dataset Menu")
     if engine:
-        st.dataframe(
-            engine.df_train[['Nama_Menu', 'Kategori', 'Kalori_(kcal)', 'Sumber_Karbohidrat']].head(10),
-            use_container_width=True
-        )
+        # Filter berdasarkan kalori (opsional)
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            st.write("**Semua Menu yang Tersedia:**")
+        with col2:
+            filter_kalori = st.checkbox("Filter by Kalori", value=False)
+        
+        if filter_kalori:
+            kalori_filter = st.slider(
+                "Tampilkan menu dengan kalori:",
+                min_value=int(engine.df_train['Kalori_(kcal)'].min()),
+                max_value=int(engine.df_train['Kalori_(kcal)'].max()),
+                value=385
+            )
+            filtered_df = engine.df_train[engine.df_train['Kalori_(kcal)'] == kalori_filter]
+            st.write(f"**Menu dengan kalori {kalori_filter} kcal:** {len(filtered_df)} menu")
+            st.dataframe(
+                filtered_df[['Nama_Menu', 'Kategori', 'Kalori_(kcal)', 'Sumber_Karbohidrat']],
+                use_container_width=True
+            )
+        else:
+            st.dataframe(
+                engine.df_train[['Nama_Menu', 'Kategori', 'Kalori_(kcal)', 'Sumber_Karbohidrat']].head(10),
+                use_container_width=True
+            )
 
 # ========================================
 # FOOTER
