@@ -352,10 +352,10 @@ class MCCBFEngine:
         # Default weights (Skenario 1: Bobot Seimbang)
         if weights is None:
             weights = {
-                'deskripsi': 0.25,
+                'deskripsi': 0.45,
                 'kategori': 0.25,
                 'karbohidrat': 0.20,
-                'kalori': 0.30
+                'kalori': 0.10
             }
         
         # ========================================
