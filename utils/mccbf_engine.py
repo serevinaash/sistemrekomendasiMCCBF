@@ -22,6 +22,49 @@ class MCCBFEngine:
         self.vectorizer = joblib.load(vectorizer_path)
         self.scaler = joblib.load(scaler_path)
         self.df_train = pd.read_csv(data_train_path)
+                # ----------------------------------------
+        #  SYNONYM MAP untuk ekspansi deskripsi
+        # ----------------------------------------
+        self.synonym_map = {
+            'kuah': ['berkuah', 'kaldu'],
+            'rawon': ['kluwek', 'rawon-surabaya'],
+            'soto': ['soto-ayam', 'soto-bandung', 'kaldu'],
+            'pedas': ['pedas-gurih', 'spicy'],
+            'panggang': ['bakar', 'oven', 'grill'],
+            'madu': ['honey', 'honey-glaze'],
+            'saus': ['sauce', 'saus-manis', 'saus-mentega'],
+            'katsu': ['crispy', 'roasted', 'pan-fried'],
+            'teriyaki': ['yakiniku', 'bulgogi'],
+            'gurih': ['asin', 'lezat'],
+            'rendah': ['low', 'low-fat', 'rendah-lemak'],
+            'sayur': ['vegetable', 'vege', 'sayuran'],
+            'kelapa': ['santan', 'santan-less', 'tanpa santan']
+        }
+
+        # ----------------------------------------
+        # Pastikan corpus ada
+        # ----------------------------------------
+        if 'corpus' not in self.df_train.columns:
+            self.df_train['corpus'] = self._create_corpus(self.df_train)
+
+        # ----------------------------------------
+        # Expand corpus training dengan sinonim
+        # ----------------------------------------
+        expanded_corpus = [
+            self.expand_text_with_synonyms(str(c)) 
+            for c in self.df_train['corpus'].astype(str).values
+        ]
+
+        # Buat TF-IDF training matrix menggunakan expanded corpus
+        self.tfidf_train = self.vectorizer.transform(expanded_corpus)
+
+        # Normalisasi nama kolom setelah TF-IDF siap
+        self.df_train.columns = (
+            self.df_train.columns.str.strip().str.replace(' ', '_')
+        )
+
+        print("✅ MCCBF Engine berhasil diinisialisasi (Synonym Expansion aktif)")
+
         
         # Normalisasi nama kolom (ganti spasi dengan underscore)
         self.df_train.columns = self.df_train.columns.str.strip().str.replace(' ', '_')
@@ -252,7 +295,36 @@ class MCCBFEngine:
         # 3️⃣ Tidak ada match sama sekali
         return 0.0
     
-    
+    def expand_text_with_synonyms(self, text):
+        """Expand teks user/menu dengan sinonim agar TF-IDF overlap meningkat"""
+        if not isinstance(text, str):
+            return text
+
+        clean = self.clean_text(text)
+        tokens = clean.split()
+
+        extra = []
+        for t in tokens:
+            if t in self.synonym_map:
+                extra.extend(self.synonym_map[t])
+            else:
+                # detect partial (mis: 'berkuah' → key 'kuah')
+                for key in self.synonym_map:
+                    if key in t:
+                        extra.extend(self.synonym_map[key])
+
+        if extra:
+            # hapus duplikat
+            seen = set()
+            unique = []
+            for w in extra:
+                if w not in seen:
+                    unique.append(w)
+                    seen.add(w)
+            return clean + " " + " ".join(unique)
+
+        return clean
+
     def get_recommendations(self, 
                            kalori_target, 
                            kategori_lauk, 
@@ -295,7 +367,10 @@ class MCCBFEngine:
         if not user_corpus.strip():
             user_corpus = "menu sehat"  # Default fallback
         
-        user_tfidf = self.vectorizer.transform([user_corpus])
+        # Expand user query agar similarity deskripsi lebih akurat
+        user_corpus_expanded = self.expand_text_with_synonyms(user_corpus)
+        user_tfidf = self.vectorizer.transform([user_corpus_expanded])
+
         sim_deskripsi = cosine_similarity(user_tfidf, self.tfidf_train)[0]
         
         # Pastikan tidak ada NaN
