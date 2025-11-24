@@ -70,7 +70,7 @@ class MCCBFEngine:
             if col in self.df.columns:
                 self.df[col] = self.df[col].astype(str).str.lower().str.strip().replace('nan', '')
 
-    def _calculate_calorie_score(self, item_cal, user_cal, tolerance=40):
+    def _calculate_calorie_score(self, item_cal, user_cal, tolerance=30):
         """
         Hitung skor kalori dengan toleransi
         
@@ -125,36 +125,32 @@ class MCCBFEngine:
         return 0.0
     
     def _calculate_keyword_boost(self, item_desc, user_desc):
-        """
-        Berikan boost untuk keyword penting yang match
-        
-        Args:
-            item_desc: Deskripsi item menu
-            user_desc: Deskripsi preferensi user
-        
-        Returns:
-            Boost score (0-0.2)
-        """
+        """Boost lebih agresif"""
         if not user_desc or user_desc == 'nan':
             return 0.0
         
-        # Keyword penting
+        # Keyword penting + tambahkan lebih banyak
         important_keywords = {
-            'pedas', 'manis', 'gurih', 'asam', 'asin',
-            'panggang', 'bakar', 'goreng', 'kukus', 'rebus', 'tumis',
-            'rendah', 'tinggi', 'tanpa', 'kuah', 'kering',
-            'renyah', 'lembut', 'empuk', 'segar',
-            'santan', 'lemak', 'minyak'
+            # Rasa
+            'pedas', 'manis', 'gurih', 'asam', 'asin', 'pahit',
+            # Metode masak
+            'panggang', 'bakar', 'goreng', 'kukus', 'rebus', 'tumis', 'crispy', 'grill',
+            # Karakteristik
+            'rendah', 'tinggi', 'tanpa', 'kuah', 'kering', 'bening',
+            'renyah', 'lembut', 'empuk', 'segar', 'kaya', 'protein',
+            'santan', 'lemak', 'minyak',
+            # Bumbu/style
+            'teriyaki', 'balado', 'sambal', 'woku', 'korea', 'yakiniku', 
+            'bulgogi', 'curry', 'soto', 'rawon'
         }
         
         user_keywords = set(str(user_desc).lower().split())
         item_keywords = set(str(item_desc).lower().split())
         
-        # Hitung matched important keywords
         matched = user_keywords & item_keywords & important_keywords
         
-        # Boost: 0.05 per keyword (max 0.2)
-        return min(0.2, len(matched) * 0.05)
+        # BOOST LEBIH BESAR: 0.08 per keyword (max 0.3)
+        return min(0.3, len(matched) * 0.08)
 
     def get_recommendations(self, kalori_target=None, kategori_lauk=None, 
                           sumber_karbo_list=None, deskripsi_preferensi=None,
@@ -188,13 +184,13 @@ class MCCBFEngine:
 
         # Default weights
         if weights is None:
+            # Turunkan w_kalori, naikkan w_lauk & w_deskripsi
             weights = {
-                'w_kalori': 0.35,      # Kalori penting
-                'w_lauk': 0.25,        # Kategori lauk
-                'w_karbo': 0.20,       # Sumber karbo
-                'w_deskripsi': 0.20    # Deskripsi
+                'w_kalori': 0.30,      # Turun dari 0.35
+                'w_lauk': 0.25,        # Naik dari 0.25
+                'w_karbo': 0.20,       # Naik dari 0.20
+                'w_deskripsi': 0.25    # Turun dari 0.20 (karena boost sudah kuat)
             }
-
         scores = []
         
         # Vectorize user query untuk TF-IDF
