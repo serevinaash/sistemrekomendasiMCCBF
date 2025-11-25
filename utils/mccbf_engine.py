@@ -4,6 +4,11 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import os
 import re
+STOPWORDS_ID = [
+    "dan", "yang", "di", "ke", "dengan", "tanpa", "pakai",
+    "serta", "untuk", "agar", "supaya", "adalah"
+]
+
 
 class MCCBFEngine:
     def __init__(self, data_path=None, dataframe=None):
@@ -59,7 +64,12 @@ class MCCBFEngine:
         # =======================
         # TF-IDF VECTOR
         # =======================
-        self.vectorizer = TfidfVectorizer(stop_words=None)
+        self.vectorizer = TfidfVectorizer(
+            ngram_range=(1,2),
+            stop_words=STOPWORDS_ID,
+            min_df=1,
+            sublinear_tf=True
+        )
 
         if not self.df.empty:
             desc = self.df['Deskripsi_Menu'].fillna('').astype(str)
@@ -123,19 +133,27 @@ class MCCBFEngine:
         return max(0.0, 1.0 - normalized_diff)
 
     def _calculate_category_score(self, item_val, user_val):
-        if not user_val or user_val == 'nan':
+        if not user_val or user_val == 'nan' or item_val == 'nan':
             return 0.5
-        
+
         item = str(item_val).lower()
         user = str(user_val).lower()
 
+        # Exact match
         if item == user:
             return 1.0
 
+        # Partial match: kata pengguna ada di item
         if user in item or item in user:
-            return 1.0
+            return 0.8
 
+        # Soft similarity: huruf awal sama (ayam – ayam fillet, sapi – sapi lada)
+        if item[0] == user[0]:
+            return 0.5
+
+        # Fallback
         return 0.0
+
 
     def _calculate_keyword_boost(self, item_desc, user_desc):
         """
