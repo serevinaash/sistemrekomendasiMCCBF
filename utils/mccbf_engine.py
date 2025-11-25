@@ -4,6 +4,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import os
 import re
+import math 
+
 STOPWORDS_ID = [
     "dan", "yang", "di", "ke", "dengan", "tanpa", "pakai",
     "serta", "untuk", "agar", "supaya", "adalah"
@@ -119,18 +121,28 @@ class MCCBFEngine:
     # =============================================================
     # SCORING COMPONENTS
     # =============================================================
-    def _calculate_calorie_score(self, item_cal, user_cal, tolerance=40):
-        diff = abs(user_cal - item_cal)
-
-        if diff <= tolerance:
-            return 1.0
-
-        cal_range = self.max_calories - self.min_calories
-        if cal_range == 0: 
-            return 1.0
+    def _calculate_calorie_score(self, item_cal, user_cal, sigma=50):
+        """
+        Gaussian calorie scoring:
+        - Semakin dekat ke kalori target → skor mendekati 1
+        - Semakin jauh → skor turun smooth (bukan patah kaya threshold)
         
-        normalized_diff = diff / cal_range
-        return max(0.0, 1.0 - normalized_diff)
+        sigma = toleransi kalori (standar deviasi), default 50 kcal
+        """
+        if user_cal is None:
+            return 0.5
+
+        try:
+            diff = abs(float(user_cal) - float(item_cal))
+        except:
+            return 0.5
+
+        # Gaussian: exp( - (diff^2) / (2 * sigma^2) )
+        score = math.exp(-(diff ** 2) / (2 * (sigma ** 2)))
+
+        # clamp ke [0,1] untuk jaga-jaga
+        return max(0.0, min(1.0, score))
+
 
     def _calculate_category_score(self, item_val, user_val):
         if not user_val or user_val == 'nan' or item_val == 'nan':
