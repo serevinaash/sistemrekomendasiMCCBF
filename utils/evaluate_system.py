@@ -290,7 +290,7 @@ class MCCBFEvaluator:
 if __name__ == "__main__":
     # Inisialisasi evaluator
     evaluator = MCCBFEvaluator(
-        ground_truth_path='data/ground_truth_v3.csv',
+        ground_truth_path='data/ground_truth_v4.csv',
         data_path='data/Preprocessing/data_preprocessed.csv'
     )
     
