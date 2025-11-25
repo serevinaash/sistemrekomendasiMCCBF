@@ -126,7 +126,7 @@ def main():
     engine = load_mccbf_engine('model')
     
     # Load ground truth
-    ground_truth = pd.read_csv('data/ground_truth_v3.csv')
+    ground_truth = pd.read_csv('data/ground_truth_v4.csv')
     print(f"\n✅ Dataset loaded: {len(ground_truth)} test cases\n")
     
     # Definisi 3 mode
