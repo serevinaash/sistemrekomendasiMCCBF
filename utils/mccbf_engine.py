@@ -186,9 +186,9 @@ class MCCBFEngine:
         if weights is None:
             # Turunkan w_kalori, naikkan w_lauk & w_deskripsi
             weights = {
-                'w_kalori': 0.30,      # Turun dari 0.35
+                'w_kalori': 0.25,      # Turun dari 0.35
                 'w_lauk': 0.25,        # Naik dari 0.25
-                'w_karbo': 0.20,       # Naik dari 0.20
+                'w_karbo': 0.25,       # Naik dari 0.20
                 'w_deskripsi': 0.25    # Turun dari 0.20 (karena boost sudah kuat)
             }
         scores = []
