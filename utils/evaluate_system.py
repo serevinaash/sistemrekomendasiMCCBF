@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from utils.mccbf_engine import MCCBFEngine
+from mccbf_engine import MCCBFEngine
 import os
 import re
 
@@ -72,7 +72,9 @@ class MCCBFEvaluator:
             )
 
             recommended = set([normalize_menu_name(n) for n in rec['Nama_Menu']])
-        except:
+        except Exception as e:
+            if verbose:
+                print(f"⚠️ Error untuk user case: {e}")
             recommended = set()
 
         tp = len(relevant_menus & recommended)
@@ -97,7 +99,7 @@ class MCCBFEvaluator:
     def evaluate_mode(self, mode="seimbang", top_n=5, verbose=False):
         results = []
 
-        for _, row in self.ground_truth.iterrows():
+        for idx, row in self.ground_truth.iterrows():
             m = self.calculate_metrics_for_user(row, top_n=top_n, mode=mode, verbose=verbose)
             results.append(m)
 
@@ -119,17 +121,44 @@ class MCCBFEvaluator:
     def evaluate_all_modes(self, top_n=5, verbose=False):
         summary = {}
 
+        print("\n" + "="*70)
+        print("🔍 EVALUATING ALL MODES")
+        print("="*70)
+
         for mode in self.available_modes:
             df, metrics = self.evaluate_mode(mode=mode, top_n=top_n, verbose=verbose)
             summary[mode] = {"df": df, "metrics": metrics}
 
-            print(f"\n==============================")
+            print(f"\n{'─'*70}")
             print(f"  📌 MODE: {mode.upper()}")
-            print("==============================")
-            print(f"Precision: {metrics['avg_precision']:.4f}")
-            print(f"Recall:    {metrics['avg_recall']:.4f}")
-            print(f"F1-Score:  {metrics['avg_f1']:.4f}")
-            print(f"TP={metrics['tp']}, FP={metrics['fp']}, FN={metrics['fn']}")
+            print(f"{'─'*70}")
+            print(f"  Precision: {metrics['avg_precision']:.4f} ({metrics['avg_precision']*100:.2f}%)")
+            print(f"  Recall:    {metrics['avg_recall']:.4f} ({metrics['avg_recall']*100:.2f}%)")
+            print(f"  F1-Score:  {metrics['avg_f1']:.4f} ({metrics['avg_f1']*100:.2f}%)")
+            print(f"  TP={metrics['tp']}, FP={metrics['fp']}, FN={metrics['fn']}")
+
+        # Summary comparison
+        print(f"\n{'='*70}")
+        print("📊 SUMMARY COMPARISON")
+        print(f"{'='*70}")
+        
+        comparison = []
+        for mode in self.available_modes:
+            comparison.append({
+                'Mode': mode.title(),
+                'Precision': f"{summary[mode]['metrics']['avg_precision']:.4f}",
+                'Recall': f"{summary[mode]['metrics']['avg_recall']:.4f}",
+                'F1-Score': f"{summary[mode]['metrics']['avg_f1']:.4f}"
+            })
+        
+        df_comparison = pd.DataFrame(comparison)
+        print(df_comparison.to_string(index=False))
+
+        # Find best
+        best_mode = max(self.available_modes, key=lambda m: summary[m]['metrics']['avg_f1'])
+        best_f1 = summary[best_mode]['metrics']['avg_f1']
+        
+        print(f"\n🏆 BEST MODE: {best_mode.upper()} (F1={best_f1:.4f})")
 
         return summary
 
@@ -140,8 +169,31 @@ class MCCBFEvaluator:
     def evaluate_multik_modes(self, k_values=[5, 10, 20], verbose=False):
         result = {}
 
+        print("\n" + "="*70)
+        print("🔍 MULTI-K EVALUATION")
+        print("="*70)
+
         for k in k_values:
+            print(f"\n📍 Evaluating with Top-{k}...")
             result[k] = self.evaluate_all_modes(top_n=k, verbose=verbose)
+
+        # Multi-K comparison
+        print(f"\n{'='*70}")
+        print("📊 MULTI-K COMPARISON (Mode: Seimbang)")
+        print(f"{'='*70}")
+        
+        multik_data = []
+        for k in k_values:
+            metrics = result[k]['seimbang']['metrics']
+            multik_data.append({
+                'Top-K': k,
+                'Precision': f"{metrics['avg_precision']:.4f}",
+                'Recall': f"{metrics['avg_recall']:.4f}",
+                'F1-Score': f"{metrics['avg_f1']:.4f}"
+            })
+        
+        df_multik = pd.DataFrame(multik_data)
+        print(df_multik.to_string(index=False))
 
         return result
 
@@ -153,12 +205,20 @@ class MCCBFEvaluator:
         os.makedirs(output_dir, exist_ok=True)
         summary = self.evaluate_all_modes(top_n=top_n)
 
+        print(f"\n{'='*70}")
+        print("💾 SAVING RESULTS")
+        print(f"{'='*70}")
+
         for mode in self.available_modes:
             df = summary[mode]['df']
             metrics = summary[mode]['metrics']
 
-            df.to_csv(f"{output_dir}/evaluasi_detail_{mode}.csv", index=False)
+            # Save detailed results
+            detail_path = f"{output_dir}/evaluasi_detail_{mode}.csv"
+            df.to_csv(detail_path, index=False)
+            print(f"✅ Saved: {detail_path}")
 
+            # Save summary metrics
             m = pd.DataFrame([{
                 "metric": "precision", "value": metrics['avg_precision']
             }, {
@@ -167,26 +227,90 @@ class MCCBFEvaluator:
                 "metric": "f1_score", "value": metrics['avg_f1']
             }])
 
-            m.to_csv(f"{output_dir}/evaluasi_summary_{mode}.csv", index=False)
+            summary_path = f"{output_dir}/evaluasi_summary_{mode}.csv"
+            m.to_csv(summary_path, index=False)
+            print(f"✅ Saved: {summary_path}")
 
-        print("📁 Semua mode berhasil disimpan.")
+        # Save comparison table
+        comparison = []
+        for mode in self.available_modes:
+            comparison.append({
+                'mode': mode,
+                'precision': summary[mode]['metrics']['avg_precision'],
+                'recall': summary[mode]['metrics']['avg_recall'],
+                'f1_score': summary[mode]['metrics']['avg_f1'],
+                'tp': summary[mode]['metrics']['tp'],
+                'fp': summary[mode]['metrics']['fp'],
+                'fn': summary[mode]['metrics']['fn']
+            })
+        
+        df_comparison = pd.DataFrame(comparison)
+        comparison_path = f"{output_dir}/evaluasi_comparison_all_modes.csv"
+        df_comparison.to_csv(comparison_path, index=False)
+        print(f"✅ Saved: {comparison_path}")
+
+        print(f"\n📁 All results saved to: {output_dir}/")
 
 
 # ========================================
 # MAIN SCRIPT
 # ========================================
 if __name__ == "__main__":
+    import sys
+    
+    # Parse arguments
+    mode = sys.argv[1] if len(sys.argv) > 1 else "all"
+    
+    print("="*70)
+    print("🚀 MCCBF EVALUATION SYSTEM")
+    print("="*70)
+    print(f"Mode: {mode}")
+    print(f"{'='*70}\n")
+    
     # Inisialisasi evaluator
     evaluator = MCCBFEvaluator(
         ground_truth_path='data/ground_truth_v4.csv',
         data_path='data/Preprocessing/data_preprocessed.csv'
     )
     
-    # Evaluasi Multi-K
-    results_multi_k = evaluator.evaluate_multik_modes(
-        k_values=[5, 10, 20],
-        verbose=False
-    )
+    if mode == "all":
+        # Evaluasi semua mode dengan Top-5
+        print("\n📍 Running evaluation for all modes (Top-5)...")
+        evaluator.save_results_per_mode(output_dir='model', top_n=5)
     
-    # Simpan hasil untuk K=5
-    evaluator.save_results_per_mode(output_dir='model', top_n=5)
+    elif mode == "multik":
+        # Evaluasi Multi-K
+        print("\n📍 Running multi-K evaluation...")
+        results_multi_k = evaluator.evaluate_multik_modes(
+            k_values=[5, 10, 20],
+            verbose=False
+        )
+        
+        # Save multi-K results
+        for k in [5, 10, 20]:
+            for mode_name in evaluator.available_modes:
+                metrics = results_multi_k[k][mode_name]['metrics']
+                df = results_multi_k[k][mode_name]['df']
+                
+                output_path = f"model/evaluasi_detail_{mode_name}_top{k}.csv"
+                df.to_csv(output_path, index=False)
+                print(f"✅ Saved: {output_path}")
+    
+    elif mode == "single":
+        # Evaluasi mode seimbang saja
+        print("\n📍 Running evaluation for mode: seimbang (Top-5)...")
+        _, metrics = evaluator.evaluate_mode(mode='seimbang', top_n=5, verbose=False)
+        
+        print(f"\n{'='*70}")
+        print("📊 FINAL RESULTS (Mode: Seimbang)")
+        print(f"{'='*70}")
+        print(f"  Precision: {metrics['avg_precision']:.4f} ({metrics['avg_precision']*100:.2f}%)")
+        print(f"  Recall:    {metrics['avg_recall']:.4f} ({metrics['avg_recall']*100:.2f}%)")
+        print(f"  F1-Score:  {metrics['avg_f1']:.4f} ({metrics['avg_f1']*100:.2f}%)")
+        print(f"  TP={metrics['tp']}, FP={metrics['fp']}, FN={metrics['fn']}")
+    
+    else:
+        print("Usage: python evaluate_system.py [all|multik|single]")
+        print("  all:    Evaluate all modes (seimbang, fokus_deskripsi, fokus_lauk)")
+        print("  multik: Evaluate with multiple K values (5, 10, 20)")
+        print("  single: Evaluate only mode 'seimbang'")

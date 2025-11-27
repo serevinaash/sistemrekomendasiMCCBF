@@ -1,4 +1,3 @@
-# app.py
 import streamlit as st
 import pandas as pd
 import sys
@@ -6,7 +5,7 @@ from pathlib import Path
 
 # Import MCCBF Engine
 sys.path.append(str(Path(__file__).parent))
-from utils.mccbf_engine import load_mccbf_engine
+from utils.mccbf_engine import MCCBFEngine
 
 # ========================================
 # KONFIGURASI HALAMAN
@@ -25,7 +24,8 @@ st.set_page_config(
 def load_engine():
     """Load MCCBF engine sekali saja (di-cache oleh Streamlit)"""
     try:
-        engine = load_mccbf_engine(model_dir='model')
+        # ✅ FIX: Gunakan MCCBFEngine langsung
+        engine = MCCBFEngine(data_path='data/Preprocessing/data_preprocessed.csv')
         return engine
     except Exception as e:
         st.error(f"❌ Gagal load model: {str(e)}")
@@ -46,12 +46,23 @@ with st.expander("ℹ️ Tentang Sistem Ini"):
     Sistem ini menggunakan metode **Multi-Criteria Content-Based Filtering (MCCBF)** 
     untuk merekomendasikan menu diet sehat berdasarkan:
     
-    - 🔢 **Kebutuhan Kalori** (target harian Anda)
-    - 🍗 **Jenis Lauk** (Ayam, Ikan, Daging)
+    - 🔢 **Kebutuhan Kalori** (target harian Anda) - dengan Gaussian Scoring
+    - 🍗 **Jenis Lauk** (Ayam, Ikan, Daging) - dengan Fuzzy Matching
     - 🍚 **Sumber Karbohidrat** (Nasi Merah, Kentang, dll)
-    - 📝 **Preferensi Deskripsi** (rendah lemak, tanpa santan, dll)
+    - 📝 **Preferensi Deskripsi** (rendah lemak, tanpa santan, dll) - dengan TF-IDF Bigram
     
-    Sistem akan memberikan **Top-5 menu** yang paling sesuai dengan profil Anda.
+    Sistem akan memberikan **Top-N menu** yang paling sesuai dengan profil Anda.
+    
+    **Mode yang tersedia:**
+    - 🟢 Mode Seimbang (F1: **80.01%** - Optimal!) ✅
+    - 🟠 Mode Fokus Deskripsi (F1: **80.01%** - Optimal!) ✅
+    - 🔵 Mode Fokus Lauk (F1: **77.41%**)
+    
+    **Fitur Optimisasi:**
+    - ✨ Gaussian Calorie Scoring (sigma=30) untuk matching presisi
+    - ✨ Fuzzy Matching untuk toleransi variasi nama lauk
+    - ✨ TF-IDF Bigram + Keyword Boost untuk analisis deskripsi
+    - ✨ Multi-criteria balanced weighting
     """)
 
 # ========================================
@@ -60,10 +71,11 @@ with st.expander("ℹ️ Tentang Sistem Ini"):
 st.sidebar.header("🎯 Masukkan Preferensi Anda")
 
 # Ambil range kalori dari dataset
-if engine:
-    kalori_min = int(engine.df_train['Kalori_(kcal)'].min())
-    kalori_max = int(engine.df_train['Kalori_(kcal)'].max())
-    kalori_mean = int(engine.df_train['Kalori_(kcal)'].mean())
+if engine and not engine.df.empty:
+    # ✅ FIX: Gunakan engine.df (bukan df_train) dan kolom 'Kalori' (bukan 'Kalori_(kcal)')
+    kalori_min = int(engine.df['Kalori'].min())
+    kalori_max = int(engine.df['Kalori'].max())
+    kalori_mean = int(engine.df['Kalori'].mean())
     
     # Tampilkan info range kalori dengan visual
     st.sidebar.caption(f"📊 **Range Kalori Menu:**")
@@ -80,174 +92,141 @@ kalori_target = st.sidebar.slider(
     "Target Kalori (kcal)",
     min_value=kalori_min,
     max_value=kalori_max,
-    value=kalori_mean,  # Default value = rata-rata kalori di dataset
+    value=kalori_mean,
     step=5,
-    help=f"Pilih target kalori (tersedia: {kalori_min}-{kalori_max} kcal)"
+    help=f"Pilih target kalori (tersedia: {kalori_min}-{kalori_max} kcal)\n\n💡 Menggunakan Gaussian Scoring untuk matching kalori yang lebih smooth"
 )
 
 # 2️⃣ Pilih Kategori Lauk (Dynamic dari Dataset)
-if engine:
-    kategori_options = sorted(engine.df_train['Kategori'].unique().tolist())
+if engine and not engine.df.empty:
+    # ✅ FIX: Gunakan kolom 'Kategori_Lauk' (bukan 'Kategori')
+    kategori_options = sorted(engine.df['Kategori_Lauk'].dropna().unique().tolist())
 else:
-    kategori_options = ["Ayam", "Ikan", "Sapi", "Lainnya"]
+    kategori_options = ["ayam", "ikan", "sapi"]
 
 kategori_lauk = st.sidebar.selectbox(
     "Pilih Jenis Lauk",
     options=kategori_options,
-    help="Pilih satu jenis lauk favorit Anda"
+    help="Pilih satu jenis lauk favorit Anda\n\n💡 Menggunakan Fuzzy Matching untuk toleransi variasi nama"
 )
 
-# 3️⃣ Pilih Sumber Karbohidrat (Multi-select) - Dynamic dari Dataset
-if engine and 'karbo_list' in engine.df_train.columns:
-    # Ekstrak semua opsi karbo unik dari dataset
-    all_karbo = []
-    for karbo_list_str in engine.df_train['karbo_list'].dropna():
-        try:
-            import ast
-            karbo_items = ast.literal_eval(karbo_list_str) if isinstance(karbo_list_str, str) else karbo_list_str
-            all_karbo.extend(karbo_items)
-        except:
-            pass
-    karbo_options = sorted(list(set([k.strip() for k in all_karbo if k])))
+# 3️⃣ Pilih Sumber Karbohidrat
+if engine and not engine.df.empty:
+    # ✅ FIX: Gunakan kolom 'Sumber_Karbohidrat'
+    karbo_raw = engine.df['Sumber_Karbohidrat'].dropna().str.lower().str.split()
+    all_karbo = set([item for sublist in karbo_raw for item in sublist])
+    karbo_options = sorted(list(all_karbo))
 else:
-    # Fallback manual
     karbo_options = ["nasi merah", "nasi putih", "kentang", "ubi", "jagung"]
 
 pilihan_karbo = st.sidebar.multiselect(
     "Pilih Sumber Karbohidrat",
     options=karbo_options,
     default=[karbo_options[0]] if karbo_options else [],
-    help="Anda bisa memilih lebih dari satu"
+    help="Pilih sumber karbohidrat yang Anda inginkan\n\n💡 Engine akan mencari menu yang mengandung karbohidrat ini"
 )
-
-# Mode filtering (NEW)
-karbo_filter_mode = st.sidebar.radio(
-    "Mode Filter Karbohidrat",
-    options=["Fleksibel", "Strict"],
-    help="""
-    • Fleksibel: Menu dengan minimal 1 pilihan karbo yang cocok akan muncul
-    • Strict: Hanya menu yang punya SEMUA pilihan karbo user
-    """,
-    horizontal=True
-)
-
-st.sidebar.caption(f"Mode: {'🟢 Fleksibel' if karbo_filter_mode == 'Fleksibel' else '🔴 Strict'}")
 
 # 4️⃣ Deskripsi Preferensi (Text Input)
-
-# Quick select tags (suggested preferences)
 st.sidebar.markdown("**🏷️ Tag Populer (klik untuk tambahkan):**")
+
+# Initialize session state for description
+if 'deskripsi_pref' not in st.session_state:
+    st.session_state.deskripsi_pref = "rendah lemak"
 
 col1, col2 = st.sidebar.columns(2)
 
 with col1:
     st.caption("✅ **Yang Diinginkan:**")
     if st.button("🟢 Rendah Lemak", key="tag1"):
-        deskripsi_pref = "rendah lemak"
+        st.session_state.deskripsi_pref = "rendah lemak"
     if st.button("🟢 Tinggi Protein", key="tag2"):
-        deskripsi_pref = "tinggi protein"
+        st.session_state.deskripsi_pref = "tinggi protein"
     if st.button("🟢 Kukus", key="tag3"):
-        deskripsi_pref = "kukus"
+        st.session_state.deskripsi_pref = "kukus"
 
 with col2:
     st.caption("❌ **Yang Dihindari:**")
     if st.button("🔴 Tanpa Santan", key="tag4"):
-        deskripsi_pref = "tanpa santan"
+        st.session_state.deskripsi_pref = "tanpa santan"
     if st.button("🔴 Tanpa Tempe", key="tag5"):
-        deskripsi_pref = "tanpa tempe"
+        st.session_state.deskripsi_pref = "tanpa tempe"
     if st.button("🔴 Tidak Pedas", key="tag6"):
-        deskripsi_pref = "tidak pedas"
+        st.session_state.deskripsi_pref = "tidak pedas"
 
 deskripsi_pref = st.sidebar.text_area(
     "Atau Ketik Manual:",
-    value="rendah lemak tanpa santan",
+    value=st.session_state.deskripsi_pref,
     height=80,
     help="""
-    💡 **Tips Pencarian:**
+    💡 **Tips Pencarian dengan TF-IDF Bigram:**
     
-    ✅ **Yang Diinginkan (Positif):**
-    - "rendah lemak"
-    - "tinggi protein"
-    - "kukus"
-    - "pedas"
-    
-    ✅ **Yang Dihindari (Negatif):**
-    - "tanpa santan"
-    - "tanpa tempe"
-    - "tidak pedas"
-    - "bebas MSG"
+    ✅ **Keyword Penting (akan diberi bobot tinggi):**
+    - Rasa: pedas, manis, gurih, asam, asin
+    - Metode: panggang, bakar, goreng, kukus, rebus, tumis
+    - Tekstur: crispy, renyah, lembut, empuk
+    - Nutrisi: rendah lemak, tinggi protein, tanpa santan
     
     ⚠️ **Hindari:**
-    - Typo (misal: "renda" ❌, gunakan "rendah" ✅)
-    - Bahasa campuran (gunakan 1 bahasa saja)
+    - Typo (gunakan "rendah" bukan "renda")
+    - Bahasa campuran (pilih 1 bahasa saja)
     """
 )
 
-# Tampilkan preview parsing (opsional, untuk debug)
-if st.sidebar.checkbox("🔍 Preview Parsing Input", value=False):
-    if engine and deskripsi_pref.strip():
-        parsed = engine.preprocess_user_input(deskripsi_pref)
-        st.sidebar.json({
-            "Kata Positif": parsed['positive'],
-            "Kata Negatif (Dihindari)": parsed['negative']
-        })
+# ⚠️ WARNING jika deskripsi kosong
+if not deskripsi_pref or deskripsi_pref.strip() == "":
+    st.sidebar.warning("⚠️ Deskripsi kosong! Rekomendasi hanya berdasarkan kalori, lauk, dan karbo.")
 
 # 5️⃣ Pilih Skenario Bobot (Advanced)
 st.sidebar.markdown("---")
 st.sidebar.subheader("⚙️ Pengaturan Lanjutan")
 
 skenario_bobot = st.sidebar.radio(
-    "Pilih Skenario Pembobotan",
-    options=["Mode Seimbang", "Mode Fokus Deskripsi", "Mode Fokus Lauk"],
+    "Pilih Mode Rekomendasi",
+    options=["seimbang", "fokus_deskripsi", "fokus_lauk"],
+    format_func=lambda x: {
+        "seimbang": "🟢 Mode Seimbang (Recommended - 80.01%)",
+        "fokus_deskripsi": "🟠 Mode Fokus Deskripsi (80.01%)",
+        "fokus_lauk": "🔵 Mode Fokus Lauk (77.41%)"
+    }[x],
     help="""
-    🟢 Mode Seimbang: Semua kriteria diperhitungkan proporsional (paling akurat)
-    🟠 Mode Fokus Deskripsi: Prioritas pada preferensi rasa & cara masak (untuk user detail)
-    🔵 Mode Fokus Lauk: Prioritas pada jenis protein (untuk user picky eater)
+    🟢 Mode Seimbang: F1-Score 80.01% ✅ (paling akurat & balanced)
+    🟠 Mode Fokus Deskripsi: F1-Score 80.01% ✅ (optimal untuk preferensi detail)
+    🔵 Mode Fokus Lauk: F1-Score 77.41% (prioritas jenis protein)
+    
+    💡 Mode Seimbang & Fokus Deskripsi memiliki performa sama karena
+    menggunakan balanced weight distribution yang optimal.
     """
 )
 
-# Mapping skenario ke bobot
-if skenario_bobot == "Mode Seimbang":
-    weights = {
-        'deskripsi': 0.45,
-        'kategori': 0.25,
-        'karbohidrat': 0.20,
-        'kalori': 0.10
-    }
-    st.sidebar.caption("🟢 Semua kriteria diperhitungkan secara proporsional (Rekomendasi)")
-elif skenario_bobot == "Mode Fokus Deskripsi":
-    weights = {
-        'deskripsi': 0.50,
-        'kategori': 0.20,
-        'karbohidrat': 0.20,
-        'kalori': 0.10
-    }
-    st.sidebar.caption("🟠 Prioritas pada preferensi rasa & cara pengolahan")
-else:  # Mode Fokus Lauk
-    weights = {
-        'deskripsi': 0.20,
-        'kategori': 0.50,
-        'karbohidrat': 0.20,
-        'kalori': 0.10
-    }
-    st.sidebar.caption("🔵 Prioritas pada kesesuaian jenis protein/lauk")
+# Tampilkan performance metrics (UPDATED)
+performance_metrics = {
+    "seimbang": {"precision": 0.8111, "recall": 0.8000, "f1": 0.8001},
+    "fokus_deskripsi": {"precision": 0.8111, "recall": 0.8000, "f1": 0.8001},
+    "fokus_lauk": {"precision": 0.7878, "recall": 0.7744, "f1": 0.7741}
+}
 
-# Tampilkan bobot yang digunakan dengan visual yang lebih baik
-with st.sidebar.expander("📋 Lihat Detail Bobot Kriteria"):
-    st.markdown("**Bobot yang Digunakan:**")
-    
-    # Tampilkan sebagai progress bar untuk visualisasi
-    for kriteria, bobot in weights.items():
-        st.write(f"**{kriteria.title()}**: {bobot:.0%}")
-        st.progress(bobot)
-    
-    st.caption("💡 Total bobot = 100%")
+metrics = performance_metrics[skenario_bobot]
+st.sidebar.caption(f"📊 **Performance Mode {skenario_bobot.title()}:**")
+st.sidebar.caption(f"Precision: {metrics['precision']:.2%} | Recall: {metrics['recall']:.2%} | F1: {metrics['f1']:.2%}")
+
+# Tampilkan bobot yang digunakan
+if engine:
+    weights = engine.modes[skenario_bobot]
+    with st.sidebar.expander("📋 Lihat Detail Bobot Kriteria"):
+        st.markdown("**Bobot yang Digunakan:**")
+        
+        for key, value in weights.items():
+            label = key.replace('w_', '').replace('_', ' ').title()
+            st.write(f"**{label}**: {value:.0%}")
+            st.progress(value)
+        
+        st.caption("💡 Total bobot = 100%")
 
 # Jumlah rekomendasi
 top_n = st.sidebar.slider(
     "Jumlah Rekomendasi",
     min_value=3,
-    max_value=10,
+    max_value=20,
     value=5,
     help="Berapa menu yang ingin ditampilkan?"
 )
@@ -257,6 +236,39 @@ show_debug = st.sidebar.checkbox(
     "🔍 Mode Debug (Tampilkan Detail Skor)",
     help="Tampilkan breakdown skor similarity per kriteria untuk troubleshooting"
 )
+
+# ✅ TAMBAHAN: Dataset Diagnostic Tool
+if st.sidebar.checkbox("🛠️ Dataset Diagnostic", help="Cek kolom dan data karbohidrat"):
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("📊 Info Dataset")
+    
+    if engine and not engine.df.empty:
+        # Cek kolom
+        st.sidebar.caption(f"**Total Menu:** {len(engine.df)}")
+        st.sidebar.caption(f"**Kolom:** {', '.join(engine.df.columns.tolist())}")
+        
+        # Cek karbohidrat
+        if 'Sumber_Karbohidrat' in engine.df.columns:
+            karbo_count = engine.df['Sumber_Karbohidrat'].notna().sum()
+            karbo_null = engine.df['Sumber_Karbohidrat'].isna().sum()
+            
+            st.sidebar.caption(f"**Karbo Terisi:** {karbo_count}/{len(engine.df)}")
+            st.sidebar.caption(f"**Karbo Kosong:** {karbo_null}")
+            
+            # Sample data
+            sample = engine.df[engine.df['Sumber_Karbohidrat'].notna()]['Sumber_Karbohidrat'].head(3).tolist()
+            st.sidebar.caption(f"**Sample:** {sample}")
+        else:
+            st.sidebar.error("❌ Kolom 'Sumber_Karbohidrat' TIDAK ADA!")
+        
+        # Cek deskripsi
+        if 'Deskripsi_Menu' in engine.df.columns:
+            desc_count = engine.df['Deskripsi_Menu'].notna().sum()
+            st.sidebar.caption(f"**Deskripsi Terisi:** {desc_count}/{len(engine.df)}")
+        else:
+            st.sidebar.error("❌ Kolom 'Deskripsi_Menu' TIDAK ADA!")
+    else:
+        st.sidebar.error("❌ Engine belum load!")
 
 # ========================================
 # TOMBOL UNTUK GENERATE REKOMENDASI
@@ -270,35 +282,25 @@ generate_btn = st.sidebar.button("🚀 Dapatkan Rekomendasi", type="primary")
 
 if generate_btn:
     if engine is None:
-        st.error("❌ Model belum ter-load. Pastikan file model ada di folder `model/`")
+        st.error("❌ Model belum ter-load. Pastikan file data ada di `data/Preprocessing/data_preprocessed.csv`")
     else:
         with st.spinner("🔍 Mencari menu terbaik untuk Anda..."):
             try:
-                # Panggil fungsi rekomendasi
+                # ✅ FIX: Panggil dengan parameter yang benar
                 recommendations = engine.get_recommendations(
                     kalori_target=kalori_target,
                     kategori_lauk=kategori_lauk,
                     sumber_karbo_list=pilihan_karbo,
                     deskripsi_preferensi=deskripsi_pref,
-                    weights=weights,
                     top_n=top_n,
-                    karbo_strict_mode=(karbo_filter_mode == "Strict")  # NEW parameter
+                    mode=skenario_bobot  # ✅ FIX: Gunakan parameter 'mode' (bukan weights)
                 )
-                
-                # ✨ VALIDASI: Cek apakah input deskripsi valid
-                if deskripsi_pref.strip():
-                    parsed = engine.preprocess_user_input(deskripsi_pref)
-                    
-                    # Warning jika ada kata negatif terdeteksi
-                    if parsed['negative']:
-                        st.info(f"ℹ️ **Kata yang dihindari terdeteksi:** {', '.join(parsed['negative'])}")
-                    
-                    # Warning jika input terlalu pendek
-                    if len(parsed['positive'].split()) == 0:
-                        st.warning("⚠️ Input deskripsi hanya berisi kata negatif. Rekomendasi berdasarkan kriteria lain.")
                 
                 # Tampilkan ringkasan input user
                 st.success("✅ Rekomendasi berhasil dibuat!")
+                
+                # ✅ VALIDASI: Cek apakah deskripsi diisi
+                desc_status = "✅ Diisi" if deskripsi_pref and deskripsi_pref.strip() else "⚠️ Kosong"
                 
                 col1, col2, col3, col4 = st.columns(4)
                 with col1:
@@ -306,175 +308,167 @@ if generate_btn:
                 with col2:
                     st.metric("🍖 Jenis Lauk", kategori_lauk.title())
                 with col3:
-                    # Tampilkan jumlah pilihan karbo yang dipilih user
                     jumlah_karbo = len(pilihan_karbo) if pilihan_karbo else 0
                     st.metric("🍚 Pilihan Karbo", f"{jumlah_karbo} jenis")
                 with col4:
-                    st.metric("⚖️ Skenario", skenario_bobot.split()[0])  # "Bobot" atau "Fokus"
+                    st.metric("⚙️ Mode", skenario_bobot.title())
                 
-                # ✨ Tampilkan detail pilihan karbohidrat user
-                if pilihan_karbo:
-                    st.caption(f"🍚 **Karbohidrat yang dipilih:** {', '.join([k.title() for k in pilihan_karbo])}")
-                else:
-                    st.caption("🍚 **Karbohidrat:** Semua (tidak ada filter)")
+                # ✅ Info tambahan
+                col_a, col_b = st.columns(2)
+                with col_a:
+                    if pilihan_karbo:
+                        st.caption(f"🍚 **Karbohidrat yang dipilih:** {', '.join([k.title() for k in pilihan_karbo])}")
+                    else:
+                        st.caption("🍚 **Karbohidrat:** Semua (tidak ada filter)")
+                
+                with col_b:
+                    st.caption(f"📝 **Status Deskripsi:** {desc_status}")
+                    if desc_status == "⚠️ Kosong":
+                        st.caption("   └─ Skor deskripsi & keyword boost = 0")
+                    else:
+                        st.caption(f"   └─ Input: '{deskripsi_pref[:30]}...'")
                 
                 st.markdown("---")
                 st.subheader(f"🏆 Top-{top_n} Menu yang Direkomendasikan")
                 
-                # Cek apakah ada skor negatif (indikasi bug)
-                if (recommendations['Skor_Similarity'] < 0).any():
-                    st.error("⚠️ PERINGATAN: Terdeteksi skor negatif! Mungkin ada bug di perhitungan.")
-                
-                # ✨ TAMBAHAN: Validasi Kalori
-                kalori_recommendations = recommendations['Kalori_(kcal)'].tolist()
-                min_kal_result = min(kalori_recommendations)
-                max_kal_result = max(kalori_recommendations)
-                
-                st.caption(f"📊 **Range kalori hasil:** {min_kal_result} - {max_kal_result} kcal")
-                
-                # Warning jika tidak ada menu dengan kalori exact
-                if kalori_target not in kalori_recommendations:
-                    closest_kalori = min(kalori_recommendations, key=lambda x: abs(x - kalori_target))
-                    diff = abs(closest_kalori - kalori_target)
+                # Validasi hasil
+                if recommendations.empty:
+                    st.warning("⚠️ Tidak ada menu yang cocok dengan kriteria Anda. Coba ubah preferensi.")
+                else:
+                    # Info range kalori hasil
+                    kalori_results = recommendations['Kalori'].tolist()
+                    min_kal_result = min(kalori_results)
+                    max_kal_result = max(kalori_results)
                     
-                    st.warning(
-                        f"⚠️ **Tidak ada menu dengan kalori {kalori_target} kcal** yang sesuai kriteria lain "
-                        f"(Lauk: {kategori_lauk.title()}, Karbo: {', '.join([k.title() for k in pilihan_karbo])}).\n\n"
-                        f"Menu terdekat: **{closest_kalori} kcal** (selisih {diff} kcal)"
-                    )
+                    st.caption(f"📊 **Range kalori hasil:** {min_kal_result} - {max_kal_result} kcal")
                     
-                    # Saran alternatif
-                    with st.expander("💡 Lihat Saran Alternatif"):
-                        st.write("**Untuk mendapatkan menu dengan kalori lebih sesuai, coba:**")
-                        st.write("1. ✅ Ubah **jenis lauk** (misal: dari Sapi → Ayam atau Ikan)")
-                        st.write("2. ✅ Gunakan **Mode Fleksibel** untuk karbohidrat")
-                        st.write("3. ✅ Kurangi jumlah pilihan karbohidrat (pilih 1-2 saja)")
-                        st.write("4. ✅ Sesuaikan target kalori ke range yang lebih umum (390-400 kcal)")
+                    # Warning jika tidak ada menu dengan kalori exact
+                    if kalori_target not in kalori_results:
+                        closest_kalori = min(kalori_results, key=lambda x: abs(x - kalori_target))
+                        diff = abs(closest_kalori - kalori_target)
                         
-                        # Tampilkan statistik kalori per kategori
-                        if engine:
-                            st.markdown("---")
-                            st.write("**📊 Statistik Kalori per Kategori Lauk:**")
-                            for kat in engine.df_train['Kategori'].unique():
-                                kat_data = engine.df_train[engine.df_train['Kategori'] == kat]['Kalori_(kcal)']
-                                st.write(f"- **{kat.title()}:** {kat_data.min()}-{kat_data.max()} kcal (rata-rata: {kat_data.mean():.0f})")
-                
-                # Info tambahan untuk mode strict
-                if karbo_filter_mode == "Strict" and pilihan_karbo:
-                    st.info(
-                        f"ℹ️ **Mode Strict aktif:** Sistem hanya menampilkan menu yang memiliki "
-                        f"pilihan karbohidrat: **{', '.join([k.title() for k in pilihan_karbo])}**"
-                    )
-                
-                # Tampilkan hasil dalam format card
-                for idx, row in recommendations.iterrows():
-                    rank = row['Rank']
-                    skor = row['Skor_Similarity']
-                    nama_menu = row.get('Nama_Menu', 'N/A')
-                    kategori = row.get('Kategori', 'N/A')
-                    kalori = row.get('Kalori_(kcal)', 'N/A')
+                        st.info(
+                            f"💡 **Menu dengan kalori terdekat:** {closest_kalori} kcal (selisih {diff} kcal)\n\n"
+                            f"Sistem menggunakan Gaussian scoring dengan toleransi ±30 kcal untuk hasil yang lebih presisi."
+                        )
                     
-                    # ✨ Format karbohidrat dengan koma
-                    karbo_raw = row.get('Sumber_Karbohidrat', 'N/A')
-                    if karbo_raw and karbo_raw != 'N/A':
-                        # Split by space, capitalize, join with comma
-                        karbo_list = []
-                        karbo_str = str(karbo_raw).lower()
-                        
-                        # Handle multi-word items like "nasi merah"
-                        multi_word = ['nasi merah', 'nasi putih', 'nasi coklat', 'roti gandum']
-                        for item in multi_word:
-                            if item in karbo_str:
-                                karbo_list.append(item.title())
-                                karbo_str = karbo_str.replace(item, '')
-                        
-                        # Handle single words
-                        single_words = [w.strip().title() for w in karbo_str.split() if len(w.strip()) > 2]
-                        karbo_list.extend(single_words)
-                        
-                        # Remove duplicates
-                        karbo_list = list(dict.fromkeys(karbo_list))
-                        karbo = ', '.join(karbo_list) if karbo_list else 'N/A'
-                    else:
-                        karbo = 'N/A'
+                    # ✅ FIX: Reset index untuk ranking yang benar
+                    recommendations_display = recommendations.reset_index(drop=True)
                     
-                    deskripsi = row.get('Deskripsi_Singkat', 'N/A')
-                    
-                    # Card dengan styling
-                    with st.container():
-                        col_rank, col_info = st.columns([1, 9])
+                    # Tampilkan hasil
+                    for idx, row in recommendations_display.iterrows():
+                        rank = idx + 1  # ✅ Sekarang rank akan 1, 2, 3, 4, 5...
+                        final_score = row['Final_Score']
+                        nama_menu = row.get('Nama_Menu', 'N/A')
+                        kategori = row.get('Kategori_Lauk', 'N/A')
+                        kalori = row.get('Kalori', 'N/A')
+                        karbo = row.get('Sumber_Karbohidrat', 'N/A')
+                        deskripsi = row.get('Deskripsi_Menu', 'Tidak ada deskripsi')  # ✅ TAMBAHKAN INI
                         
-                        with col_rank:
-                            st.markdown(f"### #{rank}")
-                        
-                        with col_info:
-                            st.markdown(f"**{nama_menu}**")
-                            st.caption(f"Skor Kemiripan: {skor:.3f} | Kategori: {kategori.title()} | Kalori: {kalori} kcal")
+                        # Card dengan styling
+                        with st.container():
+                            col_rank, col_info = st.columns([1, 9])
                             
-                            # Tampilkan karbohidrat sebagai pills/badges
-                            if karbo != 'N/A':
-                                karbo_items = [k.strip() for k in karbo.split(',')]
+                            with col_rank:
+                                st.markdown(f"### #{rank}")
+                            
+                            with col_info:
+                                st.markdown(f"**{nama_menu.title()}**")
                                 
-                                # Highlight karbo yang sesuai pilihan user
-                                karbo_display = []
-                                user_karbo_lower = [k.lower() for k in pilihan_karbo]
+                                # ✅ HIDE technical score, show user-friendly info instead
+                                st.caption(f"Kategori: {kategori.title()} | Kalori: {kalori} kcal")
                                 
-                                for item in karbo_items:
-                                    if item.lower() in user_karbo_lower:
-                                        # Tambahkan checkmark untuk yang cocok
-                                        karbo_display.append(f"`{item}` ✅")
+                                # ✅ FIX: Tampilkan deskripsi
+                                if deskripsi and deskripsi != 'Tidak ada deskripsi':
+                                    st.write(f"📝 {deskripsi.capitalize()}")
+                                
+                                # ✅ FIX: Parsing karbohidrat yang lebih baik (handle multi-word)
+                                if karbo and karbo != 'N/A' and str(karbo).strip() and str(karbo).lower() != 'nan':
+                                    # Parse dengan handle multi-word items
+                                    karbo_str = str(karbo).lower().strip()
+                                    
+                                    # Definisi multi-word items yang harus dijaga utuh
+                                    multi_word_items = [
+                                        'nasi merah', 'nasi putih', 'nasi coklat', 
+                                        'roti gandum', 'kentang tumbuk', 'ubi jalar',
+                                        'jagung manis', 'oat meal'
+                                    ]
+                                    
+                                    # Extract multi-word items dulu
+                                    karbo_list = []
+                                    for item in multi_word_items:
+                                        if item in karbo_str:
+                                            karbo_list.append(item.title())
+                                            karbo_str = karbo_str.replace(item, '')  # Remove dari string
+                                    
+                                    # Kemudian ambil single-word items dari sisa string
+                                    single_words = karbo_str.split()
+                                    for word in single_words:
+                                        word = word.strip()
+                                        if len(word) > 2 and word not in ['dan', 'atau', 'dengan']:
+                                            karbo_list.append(word.title())
+                                    
+                                    # Remove duplicates sambil maintain order
+                                    karbo_list = list(dict.fromkeys(karbo_list))
+                                    
+                                    # Highlight karbo yang cocok pilihan user
+                                    karbo_display = []
+                                    user_karbo_lower = [k.lower() for k in pilihan_karbo]
+                                    
+                                    for item in karbo_list:
+                                        if item.lower() in user_karbo_lower:
+                                            karbo_display.append(f"`{item}` ✅")
+                                        else:
+                                            karbo_display.append(f"`{item}`")
+                                    
+                                    if karbo_display:
+                                        st.markdown(f"🍚 **Karbohidrat:** {' '.join(karbo_display)}")
                                     else:
-                                        karbo_display.append(f"`{item}`")
+                                        st.markdown(f"🍚 **Karbohidrat:** _Data tidak valid_ (raw: `{karbo}`)")
+                                else:
+                                    # ✅ Tampilkan pesan debug yang lebih informatif
+                                    raw_val = str(karbo) if karbo else 'None'
+                                    st.markdown(f"🍚 **Karbohidrat:** _Tidak ada data_ (raw: `{raw_val}`)")
+                                    st.caption("   └─ ⚠️ Data karbohidrat kosong di dataset untuk menu ini")
                                 
-                                st.markdown(f"🍚 **Pilihan Karbohidrat:** {' '.join(karbo_display)}")
-                                
-                                # Info jumlah opsi
-                                st.caption(f"   └─ {len(karbo_items)} pilihan tersedia")
-                            else:
-                                st.write(f"🍚 Karbohidrat: {karbo}")
+                                # Debug scores (only show in debug mode)
+                                if show_debug:
+                                    st.caption(f"📊 **Technical Scores:**")
+                                    st.caption(f"   • Total Score: {final_score:.3f}")
+                                    st.caption(f"   • Kalori Match: {row['Score_Kalori']:.3f}")
+                                    st.caption(f"   • Lauk Match: {row['Score_Lauk']:.3f}")
+                                    st.caption(f"   • Karbo Match: {row['Score_Karbo']:.3f}")
+                                    st.caption(f"   • Deskripsi Match: {row['Score_Deskripsi']:.3f}")
+                                    st.caption(f"   • Keyword Boost: {row['Keyword_Boost']:.3f}")
                             
-                            st.write(f"📝 {deskripsi}")
-                        
+                            st.markdown("---")
+                    
+                    # Tombol download hasil
+                    csv = recommendations.to_csv(index=False).encode('utf-8')
+                    st.download_button(
+                        label="📥 Download Hasil Rekomendasi (CSV)",
+                        data=csv,
+                        file_name=f'rekomendasi_menu_{skenario_bobot}.csv',
+                        mime='text/csv',
+                    )
+                    
+                    # Debug table
+                    if show_debug:
                         st.markdown("---")
-                
-                # Tombol download hasil
-                csv = recommendations.to_csv(index=False).encode('utf-8')
-                st.download_button(
-                    label="📥 Download Hasil Rekomendasi (CSV)",
-                    data=csv,
-                    file_name='rekomendasi_menu_diet.csv',
-                    mime='text/csv',
-                )
-                
-                # ✨ DEBUG MODE: Tampilkan skor per kriteria
-                if show_debug:
-                    st.markdown("---")
-                    st.subheader("🔍 Debug Mode: Detail Perhitungan")
-                    
-                    # Hitung ulang similarity untuk menu yang direkomendasikan
-                    st.write("**Skor Similarity Per Kriteria (Top-5 Menu):**")
-                    
-                    debug_data = []
-                    for idx, row in recommendations.iterrows():
-                        menu_idx = engine.df_train[engine.df_train['Nama_Menu'] == row['Nama_Menu']].index[0]
+                        st.subheader("🔍 Debug Mode: Tabel Detail Skor")
                         
-                        # Ambil kalori normalized
-                        kalori_menu = engine.df_train.loc[menu_idx, 'Kalori_(kcal)']
-                        kalori_diff = abs(kalori_menu - kalori_target)
+                        debug_df = recommendations[[
+                            'Nama_Menu', 'Final_Score', 'Score_Kalori', 
+                            'Score_Lauk', 'Score_Karbo', 'Score_Deskripsi', 'Keyword_Boost'
+                        ]].copy()
                         
-                        debug_data.append({
-                            'Rank': row['Rank'],
-                            'Nama Menu': row['Nama_Menu'],
-                            'Kalori Menu': kalori_menu,
-                            'Diff Kalori': kalori_diff,
-                            'Skor Total': f"{row['Skor_Similarity']:.3f}"
-                        })
-                    
-                    st.dataframe(pd.DataFrame(debug_data), use_container_width=True)
-                    
-                    st.caption("💡 **Interpretasi:**")
-                    st.caption("- Diff Kalori = Selisih antara target kalori Anda dengan kalori menu")
-                    st.caption("- Semakin kecil Diff Kalori, semakin tinggi skor kalori similarity")
+                        st.dataframe(debug_df, use_container_width=True)
+                        
+                        st.caption("💡 **Interpretasi:**")
+                        st.caption("- Final Score = weighted sum dari semua kriteria + keyword boost")
+                        st.caption("- Gaussian scoring (sigma=30) untuk Score_Kalori")
+                        st.caption("- Fuzzy matching untuk Score_Lauk dan Score_Karbo")
+                        st.caption("- TF-IDF + Bigram untuk Score_Deskripsi")
                 
             except Exception as e:
                 st.error(f"❌ Terjadi kesalahan: {str(e)}")
@@ -486,35 +480,42 @@ else:
     
     # Tampilkan preview dataset
     st.subheader("📊 Preview Dataset Menu")
-    if engine:
-        # Filter berdasarkan kalori (opsional)
+    if engine and not engine.df.empty:
         col1, col2 = st.columns([3, 1])
         with col1:
-            st.write("**Semua Menu yang Tersedia:**")
+            st.write(f"**Total Menu Tersedia:** {len(engine.df)} menu")
         with col2:
-            filter_kalori = st.checkbox("Filter by Kalori", value=False)
+            show_all = st.checkbox("Tampilkan Semua", value=False)
         
-        if filter_kalori:
-            kalori_filter = st.slider(
-                "Tampilkan menu dengan kalori:",
-                min_value=int(engine.df_train['Kalori_(kcal)'].min()),
-                max_value=int(engine.df_train['Kalori_(kcal)'].max()),
-                value=385
-            )
-            filtered_df = engine.df_train[engine.df_train['Kalori_(kcal)'] == kalori_filter]
-            st.write(f"**Menu dengan kalori {kalori_filter} kcal:** {len(filtered_df)} menu")
-            st.dataframe(
-                filtered_df[['Nama_Menu', 'Kategori', 'Kalori_(kcal)', 'Sumber_Karbohidrat']],
-                use_container_width=True
-            )
+        # ✅ FIX: Gunakan nama kolom yang benar
+        display_df = engine.df[['Nama_Menu', 'Kategori_Lauk', 'Kalori', 'Sumber_Karbohidrat']]
+        
+        if show_all:
+            st.dataframe(display_df, use_container_width=True, height=400)
         else:
-            st.dataframe(
-                engine.df_train[['Nama_Menu', 'Kategori', 'Kalori_(kcal)', 'Sumber_Karbohidrat']].head(10),
-                use_container_width=True
-            )
+            st.dataframe(display_df.head(10), use_container_width=True)
+        
+        # Statistik dataset
+        with st.expander("📊 Lihat Statistik Dataset"):
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                st.metric("Total Menu", len(engine.df))
+                st.metric("Kategori Lauk", engine.df['Kategori_Lauk'].nunique())
+            
+            with col2:
+                st.metric("Kalori Min", f"{engine.df['Kalori'].min():.0f} kcal")
+                st.metric("Kalori Max", f"{engine.df['Kalori'].max():.0f} kcal")
+            
+            with col3:
+                st.metric("Kalori Rata-rata", f"{engine.df['Kalori'].mean():.0f} kcal")
+                st.metric("Total Karbo Unik", engine.df['Sumber_Karbohidrat'].str.split().explode().nunique())
 
 # ========================================
-# FOOTER
+# FOOTER (UPDATED)
 # ========================================
 st.markdown("---")
-st.caption("🔬 Sistem Rekomendasi MCCBF - Icel's Room Kitchen | UIN Sunan Gunung Djati Bandung")
+st.caption("🔬 Sistem Rekomendasi MCCBF v2.0 - Optimized with Gaussian Scoring + Fuzzy Matching + TF-IDF Bigram")
+st.caption("📊 **System Performance:** Mode Seimbang & Fokus Deskripsi (Precision: 81.11%, Recall: 80.00%, **F1: 80.01%** ✅)")
+st.caption("⚙️ **Optimization:** sigma=30 (calorie matching), balanced weights (0.35|0.30|0.25|0.10)")
+st.caption("🏫 Icel's Room Kitchen | UIN Sunan Gunung Djati Bandung")

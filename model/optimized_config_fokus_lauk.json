@@ -1,0 +1,12 @@
+{
+  "mode": "fokus_lauk",
+  "weights": {
+    "w_deskripsi": 0.2,
+    "w_lauk": 0.5,
+    "w_karbo": 0.2,
+    "w_kalori": 0.1
+  },
+  "sigma": 30,
+  "f1_score": 0.7741269841269841,
+  "improvement": 2.698412698409758e-05
+}

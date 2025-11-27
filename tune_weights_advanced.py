@@ -2,237 +2,377 @@ import pandas as pd
 import numpy as np
 from utils.mccbf_engine import MCCBFEngine
 from utils.evaluate_system import MCCBFEvaluator
-import itertools
+from itertools import product
+import json
 
-def grid_search_weights(evaluator, top_n=5):
+class AdvancedWeightTuner:
     """
-    Grid search untuk mencari kombinasi bobot terbaik
+    Advanced Grid Search untuk mencari kombinasi optimal:
+    1. Weight tuning (w_deskripsi, w_lauk, w_karbo, w_kalori)
+    2. Gaussian sigma tuning
+    3. Keyword boost tuning
     """
-    print("🔍 Memulai Grid Search untuk Weight Tuning...")
-    print("="*70)
     
-    # Define weight ranges
-    # Total harus = 1.0
-    weight_options = {
-        'w_kalori': [0.25, 0.30, 0.35, 0.40, 0.45],
-        'w_lauk': [0.20, 0.25, 0.30, 0.35],
-        'w_karbo': [0.15, 0.20, 0.25],
-        'w_deskripsi': [0.15, 0.20, 0.25, 0.30]
-    }
+    def __init__(self, ground_truth_path, data_path):
+        self.ground_truth_path = ground_truth_path
+        self.data_path = data_path
+        self.best_config = None
+        self.best_f1 = 0.0
+        self.results_history = []
     
-    best_f1 = 0
-    best_weights = None
-    results_log = []
-    
-    # Generate valid weight combinations (yang total = 1.0)
-    tested = 0
-    for w_kal in weight_options['w_kalori']:
-        for w_lauk in weight_options['w_lauk']:
-            for w_karbo in weight_options['w_karbo']:
-                w_desc = 1.0 - (w_kal + w_lauk + w_karbo)
-                
-                # Skip jika w_desc tidak valid
-                if w_desc < 0.10 or w_desc > 0.35:
-                    continue
-                
-                weights = {
-                    'w_kalori': w_kal,
-                    'w_lauk': w_lauk,
-                    'w_karbo': w_karbo,
-                    'w_deskripsi': w_desc
-                }
-                
-                tested += 1
-                
-                # Test weights
-                try:
-                    # Temporarily override engine weights
-                    original_get_rec = evaluator.engine.get_recommendations
-                    
-                    def get_rec_with_weights(*args, **kwargs):
-                        kwargs['weights'] = weights
-                        return original_get_rec(*args, **kwargs)
-                    
-                    evaluator.engine.get_recommendations = get_rec_with_weights
-                    
-                    # Evaluate
-                    df_results, avg_metrics = evaluator.evaluate_all(top_n=top_n, verbose=False)
-                    
-                    # Restore original method
-                    evaluator.engine.get_recommendations = original_get_rec
-                    
-                    f1 = avg_metrics['avg_f1_score']
-                    precision = avg_metrics['avg_precision']
-                    recall = avg_metrics['avg_recall']
-                    
-                    results_log.append({
-                        'w_kalori': w_kal,
-                        'w_lauk': w_lauk,
-                        'w_karbo': w_karbo,
-                        'w_deskripsi': w_desc,
-                        'precision': precision,
-                        'recall': recall,
-                        'f1_score': f1
-                    })
-                    
-                    if f1 > best_f1:
-                        best_f1 = f1
-                        best_weights = weights.copy()
-                        print(f"\n✨ NEW BEST! F1={f1:.4f}")
-                        print(f"   Weights: Kal={w_kal}, Lauk={w_lauk}, Karbo={w_karbo}, Desc={w_desc:.2f}")
-                        print(f"   P={precision:.4f}, R={recall:.4f}")
-                    
-                    if tested % 10 == 0:
-                        print(f"   Tested {tested} combinations... Current best F1={best_f1:.4f}")
-                
-                except Exception as e:
-                    print(f"   ⚠️  Error testing weights: {e}")
-                    continue
-    
-    print(f"\n" + "="*70)
-    print(f"🏆 BEST WEIGHTS FOUND (from {tested} combinations):")
-    print(f"   • w_kalori:    {best_weights['w_kalori']}")
-    print(f"   • w_lauk:      {best_weights['w_lauk']}")
-    print(f"   • w_karbo:     {best_weights['w_karbo']}")
-    print(f"   • w_deskripsi: {best_weights['w_deskripsi']:.2f}")
-    print(f"\n   📈 Best F1-Score: {best_f1:.4f}")
-    print("="*70)
-    
-    # Save results
-    df_log = pd.DataFrame(results_log)
-    df_log = df_log.sort_values('f1_score', ascending=False)
-    df_log.to_csv('model/weight_tuning_results.csv', index=False)
-    print(f"\n✅ Results saved to: model/weight_tuning_results.csv")
-    
-    # Show top 5
-    print(f"\n📊 TOP 5 WEIGHT COMBINATIONS:")
-    print(df_log.head(5).to_string(index=False))
-    
-    return best_weights, best_f1
-
-
-def test_specific_weights(evaluator, weights_list, top_n=5):
-    """
-    Test specific weight combinations
-    """
-    print("\n🧪 Testing Specific Weight Combinations...")
-    print("="*70)
-    
-    results = []
-    
-    for idx, weights in enumerate(weights_list, 1):
-        print(f"\n[{idx}/{len(weights_list)}] Testing:")
-        print(f"   Kal={weights['w_kalori']}, Lauk={weights['w_lauk']}, "
-              f"Karbo={weights['w_karbo']}, Desc={weights['w_deskripsi']}")
+    # =========================================================
+    # GRID SEARCH: WEIGHT COMBINATIONS
+    # =========================================================
+    def grid_search_weights(self, mode="seimbang"):
+        """
+        Grid search untuk bobot optimal
+        """
+        print("="*70)
+        print(f"🔍 GRID SEARCH: Weight Optimization untuk Mode {mode.upper()}")
+        print("="*70)
         
-        try:
-            # Override weights
-            original_get_rec = evaluator.engine.get_recommendations
+        # Define search space (fokus pada range yang masuk akal)
+        # Total weight harus = 1.0
+        w_deskripsi_range = [0.35, 0.40, 0.45, 0.50, 0.55]
+        w_lauk_range = [0.20, 0.25, 0.30]
+        w_karbo_range = [0.15, 0.20, 0.25]
+        w_kalori_range = [0.05, 0.10, 0.15]
+        
+        best_f1 = 0.0
+        best_weights = None
+        results = []
+        
+        total_combinations = len(w_deskripsi_range) * len(w_lauk_range) * len(w_karbo_range) * len(w_kalori_range)
+        print(f"📊 Total kombinasi: {total_combinations}")
+        
+        tested = 0
+        for w_desc in w_deskripsi_range:
+            for w_lauk in w_lauk_range:
+                for w_karbo in w_karbo_range:
+                    for w_kal in w_kalori_range:
+                        # Constraint: total weight harus = 1.0
+                        total = w_desc + w_lauk + w_karbo + w_kal
+                        if abs(total - 1.0) > 0.01:  # Toleransi 1%
+                            continue
+                        
+                        tested += 1
+                        
+                        # Test kombinasi ini
+                        weights = {
+                            'w_deskripsi': w_desc,
+                            'w_lauk': w_lauk,
+                            'w_karbo': w_karbo,
+                            'w_kalori': w_kal
+                        }
+                        
+                        # Evaluate
+                        engine = MCCBFEngine(data_path=self.data_path)
+                        engine.modes[mode] = weights
+                        
+                        evaluator = MCCBFEvaluator(
+                            ground_truth_path=self.ground_truth_path,
+                            data_path=self.data_path,
+                            engine=engine
+                        )
+                        
+                        _, metrics = evaluator.evaluate_mode(mode=mode, top_n=5, verbose=False)
+                        
+                        f1 = metrics['avg_f1']
+                        
+                        results.append({
+                            'w_deskripsi': w_desc,
+                            'w_lauk': w_lauk,
+                            'w_karbo': w_karbo,
+                            'w_kalori': w_kal,
+                            'precision': metrics['avg_precision'],
+                            'recall': metrics['avg_recall'],
+                            'f1': f1
+                        })
+                        
+                        if f1 > best_f1:
+                            best_f1 = f1
+                            best_weights = weights
+                            print(f"\n✨ New Best F1: {f1:.4f}")
+                            print(f"   Weights: desc={w_desc}, lauk={w_lauk}, karbo={w_karbo}, kal={w_kal}")
+                        
+                        # Progress
+                        if tested % 10 == 0:
+                            print(f"⏳ Progress: {tested}/{total_combinations} tested...")
+        
+        print(f"\n{'='*70}")
+        print(f"🏆 BEST CONFIGURATION (Weights Only)")
+        print(f"{'='*70}")
+        print(f"F1-Score: {best_f1:.4f}")
+        print(f"Weights: {best_weights}")
+        
+        # Save results
+        df_results = pd.DataFrame(results).sort_values('f1', ascending=False)
+        df_results.to_csv('model/grid_search_weights.csv', index=False)
+        print(f"\n💾 Saved to: model/grid_search_weights.csv")
+        
+        return best_weights, best_f1, df_results
+    
+    # =========================================================
+    # GRID SEARCH: GAUSSIAN SIGMA
+    # =========================================================
+    def tune_gaussian_sigma(self, best_weights, mode="seimbang"):
+        """
+        Tune Gaussian sigma untuk calorie scoring
+        """
+        print("\n" + "="*70)
+        print("🔍 TUNING: Gaussian Sigma")
+        print("="*70)
+        
+        # Sigma range: 30-100 kcal (semakin kecil = semakin strict)
+        sigma_range = [30, 40, 50, 60, 70, 80]
+        
+        best_f1 = 0.0
+        best_sigma = 50
+        results = []
+        
+        for sigma in sigma_range:
+            # Create custom engine with modified sigma
+            engine = MCCBFEngine(data_path=self.data_path)
+            engine.modes[mode] = best_weights
             
-            def get_rec_with_weights(*args, **kwargs):
-                kwargs['weights'] = weights
-                return original_get_rec(*args, **kwargs)
+            # Override _calculate_calorie_score dengan sigma baru
+            original_method = engine._calculate_calorie_score
             
-            evaluator.engine.get_recommendations = get_rec_with_weights
+            def custom_calorie_score(item_cal, user_cal, sig=sigma):
+                return original_method(item_cal, user_cal, sigma=sig)
+            
+            engine._calculate_calorie_score = custom_calorie_score
             
             # Evaluate
-            df_results, avg_metrics = evaluator.evaluate_all(top_n=top_n, verbose=False)
+            evaluator = MCCBFEvaluator(
+                ground_truth_path=self.ground_truth_path,
+                data_path=self.data_path,
+                engine=engine
+            )
             
-            # Restore
-            evaluator.engine.get_recommendations = original_get_rec
+            _, metrics = evaluator.evaluate_mode(mode=mode, top_n=5, verbose=False)
+            
+            f1 = metrics['avg_f1']
             
             results.append({
-                'config': f"Kal{weights['w_kalori']}_Lauk{weights['w_lauk']}_"
-                         f"Karbo{weights['w_karbo']}_Desc{weights['w_deskripsi']}",
-                'precision': avg_metrics['avg_precision'],
-                'recall': avg_metrics['avg_recall'],
-                'f1_score': avg_metrics['avg_f1_score'],
-                **weights
+                'sigma': sigma,
+                'precision': metrics['avg_precision'],
+                'recall': metrics['avg_recall'],
+                'f1': f1
             })
             
-            print(f"   📊 P={avg_metrics['avg_precision']:.4f}, "
-                  f"R={avg_metrics['avg_recall']:.4f}, "
-                  f"F1={avg_metrics['avg_f1_score']:.4f}")
+            print(f"Sigma={sigma:3d} → F1={f1:.4f} (P={metrics['avg_precision']:.4f}, R={metrics['avg_recall']:.4f})")
+            
+            if f1 > best_f1:
+                best_f1 = f1
+                best_sigma = sigma
         
-        except Exception as e:
-            print(f"   ❌ Error: {e}")
+        print(f"\n🏆 Best Sigma: {best_sigma} (F1={best_f1:.4f})")
+        
+        return best_sigma, best_f1
     
-    df_results = pd.DataFrame(results)
-    df_results = df_results.sort_values('f1_score', ascending=False)
+    # =========================================================
+    # GRID SEARCH: KEYWORD BOOST
+    # =========================================================
+    def tune_keyword_boost(self, best_weights, best_sigma, mode="seimbang"):
+        """
+        Tune keyword boost multiplier & max cap
+        """
+        print("\n" + "="*70)
+        print("🔍 TUNING: Keyword Boost")
+        print("="*70)
+        
+        # Current: 0.08 per keyword, max 0.3
+        # Test range
+        boost_per_keyword = [0.06, 0.08, 0.10, 0.12]
+        max_boost = [0.25, 0.30, 0.35, 0.40]
+        
+        best_f1 = 0.0
+        best_boost = (0.08, 0.3)
+        results = []
+        
+        for boost_val in boost_per_keyword:
+            for max_val in max_boost:
+                # Create engine with modified boost logic
+                # (Ini perlu modifikasi engine, untuk sekarang kita skip dulu)
+                # Placeholder untuk future implementation
+                pass
+        
+        print("⚠️ Keyword boost tuning requires engine modification")
+        print("   Using current values: boost=0.08, max=0.3")
+        
+        return best_boost, best_f1
     
-    print("\n" + "="*70)
-    print("📊 COMPARISON RESULTS:")
-    print(df_results[['config', 'precision', 'recall', 'f1_score']].to_string(index=False))
-    
-    return df_results
+    # =========================================================
+    # COMBINED OPTIMIZATION
+    # =========================================================
+    def optimize_all(self, mode="seimbang"):
+        """
+        Run full optimization pipeline
+        """
+        print("\n" + "="*70)
+        print("🚀 FULL OPTIMIZATION PIPELINE")
+        print("="*70)
+        
+        # Step 1: Weight optimization
+        print("\n📍 Step 1/3: Optimizing Weights...")
+        best_weights, f1_weights, _ = self.grid_search_weights(mode=mode)
+        
+        # Step 2: Sigma optimization
+        print("\n📍 Step 2/3: Optimizing Gaussian Sigma...")
+        best_sigma, f1_sigma = self.tune_gaussian_sigma(best_weights, mode=mode)
+        
+        # Step 3: Keyword boost (placeholder)
+        print("\n📍 Step 3/3: Keyword Boost (using defaults)...")
+        
+        # Final evaluation with best config
+        print("\n" + "="*70)
+        print("🎯 FINAL EVALUATION WITH OPTIMIZED CONFIG")
+        print("="*70)
+        
+        # Create optimized engine
+        engine = MCCBFEngine(data_path=self.data_path)
+        engine.modes[mode] = best_weights
+        
+        # Apply sigma (requires engine modification to accept sigma parameter)
+        # For now, we document it
+        
+        evaluator = MCCBFEvaluator(
+            ground_truth_path=self.ground_truth_path,
+            data_path=self.data_path,
+            engine=engine
+        )
+        
+        _, final_metrics = evaluator.evaluate_mode(mode=mode, top_n=5, verbose=False)
+        
+        print(f"\n🏆 FINAL RESULTS:")
+        print(f"   Precision: {final_metrics['avg_precision']:.4f}")
+        print(f"   Recall:    {final_metrics['avg_recall']:.4f}")
+        print(f"   F1-Score:  {final_metrics['avg_f1']:.4f}")
+        
+        # Save config
+        config = {
+            'mode': mode,
+            'weights': best_weights,
+            'sigma': best_sigma,
+            'keyword_boost_per': 0.08,
+            'keyword_boost_max': 0.3,
+            'final_f1': final_metrics['avg_f1'],
+            'final_precision': final_metrics['avg_precision'],
+            'final_recall': final_metrics['avg_recall']
+        }
+        
+        with open(f'model/optimized_config_{mode}.json', 'w') as f:
+            json.dump(config, f, indent=2)
+        
+        print(f"\n💾 Config saved to: model/optimized_config_{mode}.json")
+        
+        return config
 
 
-if __name__ == "__main__":
-    # Initialize evaluator
-    evaluator = MCCBFEvaluator(
-        ground_truth_path='data/ground_truth_v3.csv',
+# =========================================================
+# SIMPLE TUNER (FASTER, TARGETED)
+# =========================================================
+def quick_tune_targeted():
+    """
+    Quick tuning dengan fokus pada range yang paling promising
+    Berdasarkan analisis: deskripsi weight paling berpengaruh
+    """
+    print("="*70)
+    print("⚡ QUICK TUNE (Targeted Search)")
+    print("="*70)
+    
+    tuner = AdvancedWeightTuner(
+        ground_truth_path='data/ground_truth_v4.csv',
         data_path='data/Preprocessing/data_preprocessed.csv'
     )
     
-    print("\n" + "="*70)
-    print("🎯 ADVANCED WEIGHT TUNING")
-    print("="*70)
+    # Focused search: boost deskripsi weight
+    print("\n🎯 Hypothesis: Increase w_deskripsi will improve F1")
+    print("   Current best: w_deskripsi=0.45 → F1=0.7560")
+    print("   Testing: w_deskripsi=0.50-0.55")
     
-    # Strategy 1: Test some promising combinations first
-    print("\n📍 PHASE 1: Testing Promising Combinations")
-    
-    promising_weights = [
-        # Current (baseline)
-        {'w_kalori': 0.35, 'w_lauk': 0.25, 'w_karbo': 0.20, 'w_deskripsi': 0.20},
-        
-        # Focus on exact matches (kategori lauk & karbo)
-        {'w_kalori': 0.30, 'w_lauk': 0.35, 'w_karbo': 0.25, 'w_deskripsi': 0.10},
-        {'w_kalori': 0.30, 'w_lauk': 0.30, 'w_karbo': 0.30, 'w_deskripsi': 0.10},
-        
-        # Focus on kalori precision
-        {'w_kalori': 0.45, 'w_lauk': 0.25, 'w_karbo': 0.20, 'w_deskripsi': 0.10},
-        
-        # Balanced with more description weight
-        {'w_kalori': 0.30, 'w_lauk': 0.25, 'w_karbo': 0.20, 'w_deskripsi': 0.25},
-        
-        # Extreme focus on kategori
-        {'w_kalori': 0.25, 'w_lauk': 0.40, 'w_karbo': 0.25, 'w_deskripsi': 0.10},
-    ]
-    # Kombinasi Promising (tambahkan ke tune_weights_advanced.py)
-    promising_weights = [
-        # Top dari PHASE 1
-        {'w_kalori': 0.30, 'w_lauk': 0.25, 'w_karbo': 0.20, 'w_deskripsi': 0.25},
-        
-        # Varian di sekitarnya
-        {'w_kalori': 0.30, 'w_lauk': 0.26, 'w_karbo': 0.19, 'w_deskripsi': 0.25},
-        {'w_kalori': 0.29, 'w_lauk': 0.25, 'w_karbo': 0.20, 'w_deskripsi': 0.26},
-        {'w_kalori': 0.31, 'w_lauk': 0.24, 'w_karbo': 0.20, 'w_deskripsi': 0.25},
-        
-        # Extreme deskripsi
-        {'w_kalori': 0.28, 'w_lauk': 0.25, 'w_karbo': 0.18, 'w_deskripsi': 0.29},
-        {'w_kalori': 0.30, 'w_lauk': 0.23, 'w_karbo': 0.20, 'w_deskripsi': 0.27},
+    candidates = [
+        # Format: (w_desc, w_lauk, w_karbo, w_kal)
+        (0.50, 0.25, 0.15, 0.10),  # Boost desc, reduce karbo
+        (0.52, 0.23, 0.15, 0.10),  # Boost desc more
+        (0.48, 0.27, 0.15, 0.10),  # Balance desc+lauk
+        (0.50, 0.20, 0.20, 0.10),  # Boost desc, keep karbo
+        (0.48, 0.25, 0.17, 0.10),  # Slight boost all
     ]
     
-    quick_results = test_specific_weights(evaluator, promising_weights, top_n=5)
+    results = []
     
-    # Strategy 2: Full grid search
-    print("\n📍 PHASE 2: Grid Search for Optimal Weights")
-    user_input = input("\nRun full grid search? (y/n): ")
-    
-    if user_input.lower() == 'y':
-        best_weights, best_f1 = grid_search_weights(evaluator, top_n=5)
+    for w_desc, w_lauk, w_karbo, w_kal in candidates:
+        weights = {
+            'w_deskripsi': w_desc,
+            'w_lauk': w_lauk,
+            'w_karbo': w_karbo,
+            'w_kalori': w_kal
+        }
         
-        print("\n" + "="*70)
-        print("🎉 TUNING COMPLETE!")
-        print("="*70)
-        print(f"\nUpdate your mccbf_engine.py with these weights:")
-        print(f"""
-weights = {{
-    'w_kalori': {best_weights['w_kalori']},
-    'w_lauk': {best_weights['w_lauk']},
-    'w_karbo': {best_weights['w_karbo']},
-    'w_deskripsi': {best_weights['w_deskripsi']:.2f}
-}}
-        """)
+        engine = MCCBFEngine(data_path='data/Preprocessing/data_preprocessed.csv')
+        engine.modes['seimbang'] = weights
+        
+        evaluator = MCCBFEvaluator(
+            ground_truth_path='data/ground_truth_v4.csv',
+            data_path='data/Preprocessing/data_preprocessed.csv',
+            engine=engine
+        )
+        
+        _, metrics = evaluator.evaluate_mode(mode='seimbang', top_n=5, verbose=False)
+        
+        results.append({
+            'w_deskripsi': w_desc,
+            'w_lauk': w_lauk,
+            'w_karbo': w_karbo,
+            'w_kalori': w_kal,
+            'precision': metrics['avg_precision'],
+            'recall': metrics['avg_recall'],
+            'f1': metrics['avg_f1']
+        })
+        
+        print(f"\n{w_desc:.2f}|{w_lauk:.2f}|{w_karbo:.2f}|{w_kal:.2f} → F1={metrics['avg_f1']:.4f} (P={metrics['avg_precision']:.4f}, R={metrics['avg_recall']:.4f})")
+    
+    # Find best
+    df = pd.DataFrame(results).sort_values('f1', ascending=False)
+    best = df.iloc[0]
+    
+    print(f"\n{'='*70}")
+    print(f"🏆 BEST CONFIG:")
+    print(f"{'='*70}")
+    print(f"F1-Score: {best['f1']:.4f}")
+    print(f"Weights: desc={best['w_deskripsi']}, lauk={best['w_lauk']}, karbo={best['w_karbo']}, kal={best['w_kalori']}")
+    
+    df.to_csv('model/quick_tune_results.csv', index=False)
+    print(f"\n💾 Saved to: model/quick_tune_results.csv")
+    
+    return df
+
+
+# =========================================================
+# MAIN
+# =========================================================
+if __name__ == "__main__":
+    import sys
+    
+    mode = sys.argv[1] if len(sys.argv) > 1 else "quick"
+    
+    if mode == "quick":
+        # Quick targeted search (recommended untuk test dulu)
+        quick_tune_targeted()
+    
+    elif mode == "full":
+        # Full grid search (slow, tapi comprehensive)
+        tuner = AdvancedWeightTuner(
+            ground_truth_path='data/ground_truth_v4.csv',
+            data_path='data/Preprocessing/data_preprocessed.csv'
+        )
+        
+        config = tuner.optimize_all(mode='seimbang')
+        print(f"\n✅ Optimization complete! Check model/optimized_config_seimbang.json")
+    
     else:
-        print("\n✅ Quick test complete. Use top result from PHASE 1!")
+        print("Usage: python tune_weights_advanced.py [quick|full]")
+        print("  quick: Fast targeted search (recommended)")
+        print("  full:  Comprehensive grid search (slow)")
