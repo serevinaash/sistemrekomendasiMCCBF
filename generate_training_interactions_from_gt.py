@@ -1,57 +1,65 @@
 import pandas as pd
-import random
 
-GROUND_TRUTH_CSV = "data/ground_truth_v4.csv"
-MENU_DATASET_CSV = "dataset450_clean_mccbf.csv"
-OUTPUT_CSV = "training_interactions.csv"
+MENU_DATASET = "dataset450_clean_mccbf.csv"
+GT_FILE = "ground_truth_v4.csv"        # file GT kamu
+OUT_FILE = "training_interactions_full.csv"
 
-NEGATIVE_SAMPLES_PER_USER = 20  # bisa disesuaikan
 
 def main():
+    print("🔧 Load dataset menu...")
+    menu_df = pd.read_csv(MENU_DATASET)
+
     print("🔧 Load ground truth...")
-    gt = pd.read_csv(GROUND_TRUTH_CSV)
-    menu_df = pd.read_csv(MENU_DATASET_CSV)
+    gt = pd.read_csv(GT_FILE)
 
-    all_menus = menu_df["Nama_Menu"].str.lower().unique().tolist()
+    rows = []
 
-    records = []
+    for _, row in gt.iterrows():
+        user_id = row["user_id"]
 
-    for idx, row in gt.iterrows():
-        user = row["user_id"]
-        relevant_list = [
-            m.strip().lower() for m in str(row["relevant_menus"]).split(",") if m.strip()
-        ]
-        relevant_list = list(set(relevant_list))  # remove duplicates
+        kalori_target = row["kalori_target"]
+        kategori_lauk = row["kategori_lauk"]
+        sumber_karbo = str(row["sumber_karbo"]).split(";")
+        deskripsi_pref = str(row["deskripsi_preferensi"])
 
-        # POSITIVE samples
-        for menu in relevant_list:
-            records.append({
-                "user_id": user,
+        relevant = [m.strip().lower() for m in str(row["relevant_menus"]).split(",")]
+
+        # ========== POSITIF SAMPLE ==========
+        for menu in relevant:
+            rows.append({
+                "user_id": user_id,
                 "menu_name": menu,
-                "relevance": 1
+                "relevance": 1,
+                "kalori_target": kalori_target,
+                "kategori_lauk": kategori_lauk,
+                "sumber_karbo": ";".join(sumber_karbo),
+                "deskripsi_preferensi": deskripsi_pref
             })
 
-        # NEGATIVE samples
-        negative_candidates = [m for m in all_menus if m not in relevant_list]
+        # ========== NEGATIF SAMPLE ==========
+        all_menus = menu_df["Nama_Menu"].astype(str).str.lower().tolist()
 
-        negative_selected = random.sample(
-            negative_candidates,
-            min(NEGATIVE_SAMPLES_PER_USER, len(negative_candidates))
-        )
+        # ambil 20 random negatif
+        neg_candidates = [m for m in all_menus if m not in relevant]
+        neg_pick = pd.Series(neg_candidates).sample(20, random_state=user_id).tolist()
 
-        for menu in negative_selected:
-            records.append({
-                "user_id": user,
+        for menu in neg_pick:
+            rows.append({
+                "user_id": user_id,
                 "menu_name": menu,
-                "relevance": 0
+                "relevance": 0,
+                "kalori_target": kalori_target,
+                "kategori_lauk": kategori_lauk,
+                "sumber_karbo": ";".join(sumber_karbo),
+                "deskripsi_preferensi": deskripsi_pref
             })
 
-        print(f"User {user} → {len(relevant_list)} positif, {len(negative_selected)} negatif")
+        print(f"User {user_id} → {len(relevant)} positif, 20 negatif")
 
-    df_out = pd.DataFrame(records)
-    df_out.to_csv(OUTPUT_CSV, index=False)
+    df_out = pd.DataFrame(rows)
+    df_out.to_csv(OUT_FILE, index=False)
 
-    print(f"\n✅ Selesai! Disimpan ke {OUTPUT_CSV}")
+    print(f"\n🎉 Selesai! Disimpan ke {OUT_FILE}")
     print(f"📊 Total sampel: {len(df_out)}")
 
 

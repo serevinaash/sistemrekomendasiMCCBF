@@ -1,9 +1,7 @@
-# mccbf_engine.py
-
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List, Optional, Dict, Any
+from typing import List, Optional
 
 import numpy as np
 import pandas as pd
@@ -26,7 +24,7 @@ class UserProfile:
 
 class MCCBFEngine:
     """
-    MCCBF LAMA + hook RandomForest sebagai booster ranking.
+    MCCBF lama + hook RandomForest sebagai booster ranking.
     """
 
     def __init__(
@@ -96,13 +94,13 @@ class MCCBFEngine:
         """
         df = self.menu_df.copy()
 
-        # 1. similarity konten
+        # 1. similarity konten (TF-IDF antara query_text user vs corpus menu)
         sims = self._content_similarity(profile.query_text)
         df["sim_content"] = sims
         sim_norm = self._normalize(sims)
 
         # 2. skor kalori (semakin dekat ke target semakin tinggi)
-        if profile.target_calories is not None:
+        if profile.target_calories is not None and "Kalori" in df.columns:
             cal_diff = (df["Kalori"] - profile.target_calories).abs()
             cal_diff_norm = cal_diff / (cal_diff.max() + 1e-9)
             df["cal_diff"] = cal_diff
@@ -112,7 +110,7 @@ class MCCBFEngine:
             df["cal_score"] = 1.0
 
         # 3. kategori match
-        if profile.prefer_kategori:
+        if profile.prefer_kategori and "Kategori" in df.columns:
             pref = profile.prefer_kategori.strip().lower()
             df["kategori_match"] = (
                 df["Kategori"].astype(str).str.lower() == pref
@@ -136,7 +134,7 @@ class MCCBFEngine:
         karbo_bad_overlap = []
 
         for karbo_list in df["Karbo_List"]:
-            karbos = [k.lower() for k in karbo_list]
+            karbos = [str(k).lower() for k in karbo_list]
             if allowed:
                 overlap = len(set(karbos) & set(allowed))
             else:
@@ -184,7 +182,6 @@ class MCCBFEngine:
     ) -> pd.DataFrame:
         """
         Bangun fitur numerik untuk RandomForest dari DataFrame yang sudah berisi skor-skor MCCBF.
-        Fitur bisa kamu tambahkan sendiri kalau mau lebih kaya.
         """
         features = pd.DataFrame(
             {
@@ -198,10 +195,84 @@ class MCCBFEngine:
                 "karbo_bad_overlap": df_scored["karbo_bad_overlap"].astype(int),
                 "karbo_final": df_scored["karbo_final"].astype(float),
                 "mccbf_score": df_scored["mccbf_score"].astype(float),
-                "kalori": df_scored["Kalori"].astype(int),
+                "kalori": df_scored["Kalori"].astype(int)
+                if "Kalori" in df_scored.columns
+                else 0,
             }
         )
         return features
+
+    def compute_feature_vector(
+        self,
+        query_text,
+        target_calories,
+        kategori_lauk,
+        allowed_karbo,
+        menu_id
+    ):
+        """
+        FINAL VERSION — COCOK DENGAN train_random_forest.py
+        Membangun 1 vector fitur MCCBF untuk menu tertentu.
+        """
+
+        # Cek validitas menu id
+        if menu_id is None or menu_id < 0 or menu_id >= len(self.menu_df):
+            return None
+
+        # Bentuk user profile MCCBF
+        profile = UserProfile(
+            query_text=query_text,
+            target_calories=target_calories,
+            prefer_kategori=kategori_lauk,
+            allowed_karbo=allowed_karbo,
+            banned_karbo=[]
+        )
+
+        # Hitung MCCBF score untuk semua menu
+        df_score = self._build_base_scores(profile)
+
+        # Ambil baris menu yg sesuai
+        row = df_score.iloc[menu_id]
+
+        # Vector fitur untuk RandomForest
+        fv = [
+            float(row["sim_content"]),
+            float(row["cal_diff"]),
+            float(row["cal_score"]),
+            int(row["kategori_match"]),
+            int(row["karbo_overlap"]),
+            int(row["karbo_bad_overlap"]),
+            float(row["karbo_final"]),
+            float(row["mccbf_score"]),
+            int(row["Kalori"]),
+        ]
+
+        return fv
+
+    def find_menu_id(self, menu_name: str) -> Optional[int]:
+        """
+        Fuzzy find menu_id berdasarkan nama menu.
+        Dipakai saat training RF untuk menghubungkan menu_name → row index.
+        """
+        from difflib import get_close_matches
+
+        if not isinstance(menu_name, str):
+            return None
+
+        name = menu_name.strip().lower()
+
+        if "Nama_Menu" not in self.menu_df.columns:
+            return None
+
+        menu_list = self.menu_df["Nama_Menu"].astype(str).str.lower().tolist()
+
+        match = get_close_matches(name, menu_list, n=1, cutoff=0.55)
+
+        if not match:
+            print(f"⚠️ Tidak ditemukan menu mirip untuk '{menu_name}'")
+            return None
+
+        return menu_list.index(match[0])
 
     # ---------- API RECOMMEND ----------
 
@@ -228,7 +299,6 @@ class MCCBFEngine:
             feats = self.build_feature_matrix_from_df(scored)
             proba = rf_model.predict_proba(feats)[:, 1]  # probabilitas relevan
             scored["rf_score"] = proba
-            # gabung dua skor
             scored["final_score"] = (
                 alpha_mccbf_vs_rf * scored["mccbf_score"]
                 + (1.0 - alpha_mccbf_vs_rf) * scored["rf_score"]

@@ -1,366 +1,366 @@
 user_id,menu_name,relevance
-1,creamy chicken mushroom,1
+1,chicken curry,1
 1,ayam bakar padang,1
 1,sempol ayam grill,1
-1,chicken curry,1
-1,dori popcorn,0
-1,mac diet panas special special,0
-1,dori katsu saus asam manis premium,0
-1,dori salted egg diet,0
-1,ayam maranggi box,0
-1,sei sapi with potatoes diet,0
-1,chicken bbq grill,0
-1,chicken rolade healthy,0
-1,ikan cabe ijo,0
-1,beef tofu teriyaki lengkap,0
-1,cah sapi buncis,0
-1,beef yakiniku,0
-1,opor ayam tanpa santan lengkap,0
-1,with brown rice with potate wedges healthy,0
-1,baked chicken honey,0
-1,bistik sapi,0
-1,thai coconut curry baby corn chef s choice,0
-1,chicken soy garlic yangnyeom,0
-1,chicken blackpepper egg tortila lengkap,0
-1,khao soi noodle supreme,0
+1,creamy chicken mushroom,1
+1,telur mata sapi balado special,0
+1,chicken ball blackpepper,0
+1,soto ayam spesial spesial,0
+1,dori chips saus asam manis lengkap,0
+1,fish stick saus wijen premium,0
+1,soto betawi tanpa santan,0
+1,opor susu legenda deluxe,0
+1,dori stick premium,0
+1,soto betawi ayam,0
+1,bola ayam saus asam pedas box,0
+1,prawn cake thailand sauce deluxe,0
+1,with brown rice box,0
+1,beef short ribs rendang special,0
+1,beef patty kastu,0
+1,ayam bakar bowl,0
+1,dori katsu balado,0
+1,pangsit ayam kuah premium,0
+1,chicken truffle meatballs signature,0
+1,pasta aglio eolio dori stick,0
+1,ayam saus mentega diet,0
+2,dori chips saus asam manis,1
+2,dori sambal ijo,1
 2,ikan woku,1
 2,gulai ikan,1
-2,dori chips saus asam manis,1
 2,dori katsu balado,1
-2,dori sambal ijo,1
-2,sempol ayam grill bowl,0
 2,rawon surabaya lengkap,0
-2,baked fish mozaru special,0
-2,ayam maranggi,0
-2,grilled chicken with lemonilo healthy,0
-2,dori chips saus asam manis lengkap,0
-2,sei sapi box,0
+2,chicken crispy saus barbeque lengkap,0
+2,opor susu legenda yellowfit,0
+2,dori oat saus wijen,0
+2,dori sambal ijo box,0
 2,tumis ayam brokoli,0
-2,mac diet panas special yellowfit,0
-2,kebab ayam,0
-2,torikatsu chicken ramen special,0
-2,fish stick saus korea,0
-2,recharge with se l sapi lengkap,0
-2,pasta aglio eolio dori stick diet,0
-2,nasi uduk saus kacang supreme,0
-2,sempol ayam grill,0
-2,with brown rice with potate wedges healthy,0
-2,rolade ayam,0
-2,cah tahu sapi,0
-2,soto ayam spesial spesial,0
-3,soto daging spesial,1
+2,fish katsu saus manis pedas,0
+2,khao soi noodle supreme,0
+2,dori saus mentega diet,0
+2,bola ayam sambal taichan,0
+2,ikan sambal kecombrang chef s choice,0
+2,dori sambal matah healthy,0
+2,ayam bakar padang spesial,0
+2,slow cooked beef signature,0
+2,ayam bakar bacem lengkap,0
+2,sei sapi with brown rice spesial,0
+2,ayam suwir teriyaki,0
+2,chicken tomyum healthy,0
+2,dori salted egg,0
+2,chicken teriyaki grill healthy,0
 3,rawon surabaya,1
-3,beef bulgogi,1
 3,beef yakiniku,1
-3,dori saus mentega,0
-3,sei sapi with potatoes diet,0
-3,dori oat saus asam manis,0
-3,brown rice ce apple tea saldo gopay diet,0
-3,pangsit ayam yamin yahun healthy,0
-3,ayam goreng kunyit yellowfit,0
-3,dori salted egg,0
-3,sapi cabe garam box,0
-3,beef patty kastu,0
-3,fish stick saus korea,0
-3,fish stick saus wijen,0
+3,soto daging spesial,1
+3,beef bulgogi,1
+3,ayam betutu sambal matah,0
+3,chicken ball crispy premium,0
+3,chicken katsu premium,0
+3,ayam serundeng,0
+3,ayam saus wijen,0
+3,rawon surabaya lengkap,0
+3,chicken curry,0
+3,ayam bakar bacem,0
+3,dori oat saus asam manis diet,0
+3,cah buncis sapi cincang,0
+3,mac diet panas special deluxe,0
+3,sei ayam with brown rice spesial,0
+3,beef short ribs rendang special,0
+3,sei ayam with potatoes premium,0
+3,japanese beef teriyaki bread yellowfit,0
+3,dori saus mentega diet,0
+3,ayam asam manis healthy chef s choice,0
+3,brokoli sapi lada hitam,0
 3,chicken crispy saus barbeque,0
-3,nasi uduk saus kacang supreme,0
-3,dori katsu balado spesial,0
-3,mie ayam sehat spesial,0
-3,chicken egg okonomiyaki supreme,0
-3,cah ayam jamur,0
-3,bakwan sayur healthy,0
-3,dori katsu saus asam manis premium,0
-3,beef short ribs rendang yellowfit,0
-4,chicken blackpepper,1
+3,chicken truffle meatballs deluxe,0
 4,chicken ball blackpepper,1
-4,chicken blackpepper egg tortila,1
+4,chicken blackpepper,1
 4,bola ayam saus asam pedas,1
-4,ayam bumbu kari,0
-4,opor ayam tanpa santan,0
-4,beef yakiniku,0
-4,sempol ayam grill,0
-4,chicken blackpepper healthy,0
+4,chicken blackpepper egg tortila,1
+4,chicken blackpepper egg tortila box,0
 4,pangsit ayam yamin yahun healthy,0
-4,ayam goreng kunyit deluxe,0
-4,rolade ayam,0
-4,with brown rice box,0
-4,dori katsu balado,0
-4,ayam serundeng healthy,0
-4,chicken grill sambal matah,0
-4,sempol ayam grill bowl,0
-4,thai coconut curry baby corn,0
-4,rawon surabaya sapi ayam,0
-4,cheese buldak chicken yellowfit,0
-4,chicken curry,0
-4,cah ayam buncis,0
-4,dori katsu balado spesial,0
-4,ayam asam manis healthy chef s choice,0
-5,dori oat saus wijen,1
-5,fish stick saus wijen,1
+4,grilled chicken with lemonilo healthy,0
+4,sei sapi with brown rice spesial,0
+4,japanese beef teriyaki bread,0
+4,chicken karage saus korea lengkap,0
+4,soto bandung,0
+4,khao soi noodle special,0
+4,chicken soy garlic yangnyeom yellowfit,0
+4,baked fish mozaru supreme,0
+4,dori katsu saus asam manis healthy,0
+4,pangsit ayam kuah,0
+4,chicken teriyaki grill lengkap,0
+4,chicken grill sambal matah lengkap,0
+4,thai coconut curry baby corn deluxe,0
+4,sapi cabe garam bowl,0
+4,beef tofu teriyaki,0
+4,dori katsu saus asam manis premium,0
+4,sapi cabe garam box,0
+4,sei ayam with lemonilo premium,0
 5,dori salted egg,1
+5,dori oat saus wijen,1
 5,dori saus mentega,1
 5,fish katsu saus manis pedas,1
-5,spaghetti ayam geprek special,0
-5,cah sapi buncis,0
-5,pangsit ayam yamin yahun healthy,0
-5,dori katsu balado premium,0
-5,indonesian beef bakso yellowfit,0
-5,chicken potatoes bowl,0
-5,bakwan sayur healthy,0
-5,ayam cabe ijo lengkap,0
-5,recharge with se l sapi lengkap,0
-5,dori oat saus wijen premium,0
-5,indonesian beef bakso signature,0
-5,rawon surabaya sapi ayam premium,0
-5,healthy japanese sushi roll,0
-5,ayam maranggi bowl,0
-5,tumis ayam paprika box,0
-5,dori katsu saus asam manis healthy,0
-5,mac diet panas special chef s choice,0
-5,tahu bakso kuah,0
-5,cah tahu sapi,0
-5,ayam suwir teriyaki,0
+5,fish stick saus wijen,1
+5,soto ayam kuning box,0
+5,thai coconut curry baby corn special,0
+5,thai coconut curry baby corn chef s choice,0
+5,indonesian beef bakso special,0
+5,sapi cabe garam spesial,0
+5,cah buncis ayam,0
+5,dori saus mentega diet,0
+5,ayam bumbu kari,0
+5,tumis ayam paprika,0
+5,sapi cabe garam bowl,0
+5,mac diet panas special special,0
+5,rawon surabaya lengkap,0
+5,chicken ball woku,0
+5,chicken crispy saus barbeque,0
+5,chicken ball blackpepper box,0
+5,chicken sandwich box,0
+5,beef burger diet,0
+5,ayam asam manis healthy signature,0
+5,telur mata sapi balado special,0
+5,ayam sambel geprek bowl,0
+6,soto ayam kuning,1
 6,opor ayam tanpa santan,1
 6,soto ayam spesial,1
-6,soto ayam kuning,1
 6,chicken curry,1
+6,indonesian beef bakso signature,0
+6,grilled chicken dietgo healthy,0
 6,fish stick saus korea diet,0
-6,ayam serundeng healthy,0
-6,chicken egg okonomiyaki special,0
-6,sei ayam with potatoes premium,0
-6,pangsit ayam yamin yahun,0
-6,dori oat saus wijen,0
-6,dori sambal ijo box,0
-6,ayam saus mentega,0
-6,chicken rolade healthy,0
-6,baked fish mozaru chef s choice,0
-6,salmon red thai curry yellowfit,0
-6,beef tofu teriyaki,0
-6,opor susu legenda yellowfit,0
-6,chicken katsu premium,0
-6,ayam saus wijen premium,0
-6,cah sapi buncis,0
-6,pizza fit,0
-6,healthy japanese sushi roll,0
-6,bola ayam crispy,0
+6,ayam serundeng,0
+6,nasi uduk saus kacang supreme,0
+6,pasta aglio eolio dori stick diet,0
+6,sempol ayam grill bowl,0
+6,rolade ayam,0
+6,dori cabai garam,0
+6,dori cabe garam,0
+6,beef bulgogi,0
 6,healthy oseng mercon sapi yellowfit,0
+6,dori katsu saus asam manis healthy,0
+6,pangsit ayam yamin yahun,0
+6,baked fish mozaru,0
+6,pizza fit,0
+6,chicken soy garlic yangnyeom deluxe,0
+6,beef tofu teriyaki lengkap,0
+6,chicken teriyaki grill,0
+6,baked fish mozaru signature,0
 7,cah tahu sapi,1
-7,beef yakiniku,1
 7,sapi cabe garam,1
-7,bistik sapi,1
 7,buncis sapi lada hitam,1
-7,chicken steak diet,0
-7,ayam serundeng,0
-7,chicken woku,0
-7,pangsit ayam yamin yahun,0
-7,dietgo fried chicken bowl,0
-7,ayam saus mentega box,0
-7,chicken rolade,0
-7,opor ayam tanpa santan lengkap,0
-7,indonesian beef bakso supreme,0
-7,rawon surabaya sapi ayam premium,0
-7,tumis ayam brokoli,0
-7,sei sapi with brown rice spesial,0
-7,fish stick saus wijen,0
-7,chicken ball blackpepper box,0
-7,indonesian beef bakso,0
-7,sapi cabe garam box,0
-7,chicken blackpepper egg tortila,0
-7,salmon red thai curry chef s choice,0
-7,dori popcorn,0
-7,ayam goreng kunyit deluxe,0
-8,dori katsu saus asam manis,1
-8,dori chips saus asam manis,1
+7,beef yakiniku,1
+7,bistik sapi,1
+7,telur mata sapi balado special,0
+7,cah buncis sapi cincang,0
+7,ayam bakar bowl,0
+7,ayam goreng kunyit,0
+7,ayam maranggi,0
+7,slow cooked beef signature,0
+7,beef short ribs rendang special,0
+7,dori oat saus wijen premium,0
+7,nasi uduk saus kacang supreme,0
+7,dori stick,0
+7,udang saus blackpepper chef s choice,0
+7,indonesian beef bakso yellowfit,0
+7,pasta aglio eolio dori stick diet,0
+7,cah ayam jamur,0
+7,ayam suwir teriyaki,0
+7,dori chips saus asam manis lengkap,0
+7,ayam bakar padang spesial,0
+7,dori katsu pasta aglio eolio,0
+7,prawn cake thailand sauce special,0
+7,chicken salted egg,0
 8,fish stick saus korea,1
 8,dori saus mentega,1
+8,dori chips saus asam manis,1
+8,dori katsu saus asam manis,1
 8,fish katsu saus manis pedas,1
-8,cheese buldak chicken yellowfit,0
-8,dori saus mentega diet,0
-8,beef tofu teriyaki lengkap,0
-8,scotch egg,0
 8,dori stick,0
-8,opor susu legenda yellowfit,0
-8,cah ayam jamur,0
-8,pizza fit chef s choice,0
-8,spaghetti ayam geprek,0
-8,ayam serundeng,0
-8,sapi cabe garam,0
-8,ayam maranggi,0
-8,bola ayam sambal taichan,0
-8,ayam goreng kunyit signature,0
-8,ayam goreng kunyit chef s choice,0
-8,chicken ball woku,0
-8,thai coconut curry baby corn,0
-8,chicken honey healthy,0
-8,sei sapi with brown rice spesial,0
-8,sapi cabe garam spesial,0
-9,opor ayam tanpa santan,1
-9,ayam bumbu kari,1
+8,bola daging teriyaki,0
+8,ayam bumbu kari,0
+8,udang saus blackpepper yellowfit,0
+8,soto betawi,0
+8,fish stick saus wijen premium,0
+8,chicken blackpepper egg tortila lengkap,0
+8,chicken herbs grill egg tortila,0
+8,chicken honey,0
+8,sei sapi box,0
+8,cah brokoli ayam,0
+8,dori sambal matah,0
+8,rawon surabaya,0
+8,soto ayam kuning,0
+8,sei ayam with brown rice spesial,0
+8,pangsit ayam yamin yahun,0
+8,spaghetti ayam geprek special,0
+8,thai coconut curry baby corn chef s choice,0
+8,dori cabe garam premium,0
+8,chicken karage saus korea,0
 9,ayam serundeng,1
 9,soto ayam kuning,1
 9,chicken curry,1
-9,dori katsu saus asam manis healthy,0
-9,ayam saus wijen premium,0
-9,hamburg steak saus teriyaki,0
-9,chicken woku,0
-9,sempol ayam grill,0
-9,beef short ribs rendang signature,0
-9,spaghetti ayam geprek special,0
-9,torikatsu chicken ramen signature,0
-9,chicken sandwich box,0
-9,dori katsu lengkap,0
-9,rolade ayam,0
-9,tumis ayam paprika,0
-9,japanese beef teriyaki bread,0
-9,bistik sapi,0
-9,dori oat saus wijen premium,0
+9,ayam bumbu kari,1
+9,opor ayam tanpa santan,1
+9,mac diet panas special deluxe,0
+9,sei ayam with potatoes premium,0
 9,beef patty bbq,0
-9,beef bulgogi healthy,0
-9,cah sapi buncis,0
+9,ayam bakar bowl,0
+9,ayam asam manis healthy,0
+9,sapi cabe garam bowl,0
+9,thai coconut curry baby corn chef s choice,0
+9,chicken tomyum,0
+9,chicken katsu premium,0
+9,japanese beef teriyaki bread yellowfit,0
 9,with brown rice box,0
-9,ayam betutu sambal matah deluxe,0
+9,opor ayam tanpa santan lengkap,0
+9,ayam goreng kunyit supreme,0
+9,brokoli sapi lada hitam,0
+9,indonesian beef bakso special,0
+9,hamburg steak saus teriyaki,0
+9,soto betawi tanpa santan,0
+9,pasta aglio eolio dori stick diet,0
+9,sapi cabe garam,0
+9,bola daging saus lada hitam diet,0
 10,soto betawi,1
 10,soto bandung,1
-10,japanese beef gyudon with brown rice bowl,0
-10,healthy oseng mercon sapi yellowfit,0
-10,ayam saus mentega box,0
-10,beef short ribs rendang yellowfit,0
-10,sei ayam with brown rice spesial,0
-10,ayam asam manis healthy yellowfit,0
-10,ayam asam manis healthy,0
-10,hamburg steak saus teriyaki chef s choice,0
-10,dori salted egg bowl,0
-10,beef burger,0
-10,ayam goreng kunyit deluxe,0
-10,pizza fit chef s choice,0
-10,opor ayam tanpa santan,0
-10,ayam goreng kunyit chef s choice,0
-10,chicken blackpepper egg tortila,0
-10,dori sambal ijo box,0
-10,chicken patty crispy,0
-10,scotch egg,0
-10,longbun with chicken blackpepper,0
-10,beef yakiniku,0
-11,chicken katsu,1
+10,tumis ayam paprika,0
+10,chicken blackpepper egg tortila lengkap,0
+10,dietgo fried chicken bowl,0
+10,ikan sambal kecombrang chef s choice,0
+10,pizza fit deluxe,0
+10,bola daging teriyaki box,0
+10,beef patty bbq,0
+10,soto betawi ayam chef s choice,0
+10,ayam goreng kunyit yellowfit,0
+10,beef short ribs rendang signature,0
+10,spaghetti ayam geprek special,0
+10,cah sapi buncis,0
+10,creamy chicken mushroom,0
+10,chicken rolade,0
+10,chicken salted egg,0
+10,soto ayam kuning box,0
+10,grilled chicken 400 keal premium,0
+10,pasta aglio eolio dori stick diet,0
+10,mac diet panas special deluxe,0
+10,rawon surabaya sapi ayam premium,0
+11,sempol ayam grill,1
 11,bola ayam crispy,1
 11,chicken ball crispy,1
-11,sempol ayam grill,1
+11,chicken katsu,1
 11,chicken patty crispy,1
-11,ayam balado,0
-11,grilled chicken with lemonilo healthy,0
-11,indonesian beef bakso,0
-11,rolade ayam,0
-11,dori katsu saus asam manis premium,0
-11,chicken grill sambal matah healthy,0
-11,cah sapi buncis,0
-11,with brown rice box,0
-11,chicken katsu premium,0
+11,with brown rice healthy,0
+11,pasta aglio eolio dori stick,0
+11,chicken truffle meatballs deluxe,0
+11,sapi cabe garam bowl,0
+11,baked fish mozaru special,0
+11,bistik bola sapi,0
+11,soto ayam spesial,0
+11,opor susu legenda chef s choice,0
+11,buncis sapi lada hitam,0
+11,tumis ayam paprika box,0
 11,baked fish mozaru supreme,0
-11,ayam asam manis healthy chef s choice,0
-11,chicken egg okonomiyaki deluxe,0
-11,japanese beef gyudon with brown rice bowl,0
-11,sei ayam with brown rice spesial,0
-11,ayam bakar,0
-11,chicken blackpepper,0
-11,opor ayam tanpa santan,0
-11,ayam goreng kunyit chef s choice,0
-11,udang saus blackpepper chef s choice,0
-11,ayam goreng kunyit signature,0
+11,soto bandung healthy,0
+11,mac diet panas special chef s choice,0
+11,cah brokoli ayam,0
+11,ayam serundeng sambal korek,0
+11,prawn cake thailand sauce deluxe,0
+11,ayam asam manis healthy,0
+11,chicken sandwich box,0
+11,recharge with se l sapi lengkap,0
+11,chicken soy garlic yangnyeom,0
+12,ikan acar kuning,1
+12,dori sambal ijo,1
 12,ikan woku,1
 12,gulai ikan,1
 12,dori katsu balado,1
-12,ikan acar kuning,1
-12,dori sambal ijo,1
-12,chicken rolade,0
-12,thai coconut curry baby corn signature,0
-12,gulai ikan healthy,0
-12,udang saus blackpepper chef s choice,0
-12,tumis ayam brokoli,0
-12,buncis sapi lada hitam,0
-12,fish stick saus korea diet,0
-12,healthy fried chicken diet,0
-12,ayam goreng kunyit signature,0
-12,sapi cabe garam lengkap,0
-12,dori chips saus asam manis lengkap,0
-12,bistik sapi,0
-12,ayam maranggi bowl,0
-12,ayam balado,0
-12,sei ayam with potatoes premium,0
-12,rawon surabaya sapi ayam premium,0
-12,sei sapi with potatoes diet,0
-12,sapi cabe garam bowl,0
-12,ayam asam manis healthy yellowfit,0
-12,japanese beef gyudon with lemonilo premium,0
-13,ayam saus mentega,1
+12,rawon surabaya lengkap,0
+12,mac diet panas special,0
+12,dori katsu balado spesial,0
+12,soto ayam kuning,0
+12,thai coconut curry baby corn,0
+12,ayam bakar bacem,0
+12,hamburg steak saus teriyaki chef s choice,0
+12,soto daging spesial,0
+12,ayam saus mentega box,0
+12,pasta aglio eolio dori stick diet,0
+12,mac diet panas special special,0
+12,healthy japanese sushi roll yellowfit,0
+12,udang saus blackpepper yellowfit,0
+12,dori popcorn premium,0
+12,chicken truffle meatballs yellowfit,0
+12,chicken bbq grill diet,0
+12,with brown rice box,0
+12,ayam cabe ijo,0
+12,sei ayam with brown rice sei box,0
+12,cah tahu sapi,0
+13,ayam suwir teriyaki,1
 13,chicken karage saus korea,1
 13,chicken teriyaki grill,1
-13,ayam suwir teriyaki,1
-13,mac diet panas special deluxe,0
-13,fish katsu saus manis pedas,0
-13,soto ayam kuning,0
-13,ikan acar kuning,0
-13,chicken tomyum,0
-13,torikatsu chicken ramen special,0
-13,ayam goreng kunyit yellowfit,0
-13,chicken ball crispy diet,0
-13,japanese beef teriyaki bread,0
-13,cah ayam buncis,0
-13,chicken salted egg,0
-13,bola ayam saus asam pedas box,0
-13,cah sapi buncis,0
-13,healthy japanese sushi roll,0
-13,slow cooked beef signature,0
-13,cah ayam jamur,0
-13,ayam bakar bacem,0
-13,chicken patty crispy bowl,0
-13,nasi uduk saus kacang supreme,0
-13,chicken ball crispy,0
-14,bola daging saus lada hitam,1
-14,beef bulgogi,1
-14,brokoli sapi lada hitam,1
+13,ayam saus mentega,1
+13,chicken soy garlic yangnyeom deluxe,0
+13,chicken potatoes bowl,0
+13,dori stick,0
+13,sempol ayam grill,0
+13,sapi cabe garam box,0
+13,cah buncis ayam,0
+13,dori katsu saus asam manis,0
+13,ayam goreng kunyit,0
+13,chicken grill sambal matah,0
+13,dori katsu balado,0
+13,sei sapi with lemonilo premium,0
+13,fish stick saus wijen premium,0
+13,grilled chicken with lemonilo healthy,0
+13,ayam goreng kunyit supreme,0
+13,egg tortila baked chicken honey,0
+13,soto betawi ayam,0
+13,healthy oseng mercon sapi chef s choice,0
+13,ayam saus mentega box,0
+13,udang saus blackpepper yellowfit,0
+13,mie ayam sehat spesial,0
 14,cah sapi buncis,1
+14,brokoli sapi lada hitam,1
+14,bola daging saus lada hitam,1
 14,buncis sapi lada hitam,1
-14,slow cooked beef signature,0
-14,soto ayam kuning box,0
-14,ayam goreng kunyit,0
-14,ayam goreng kunyit chef s choice,0
-14,chicken soy garlic yangnyeom yellowfit,0
-14,cah ayam buncis,0
-14,fish stick saus wijen,0
-14,chicken egg okonomiyaki deluxe,0
-14,ayam sambel geprek bowl,0
-14,ayam bakar padang spesial,0
-14,soto bandung lengkap,0
-14,khao soi noodle special,0
-14,bola daging teriyaki,0
-14,ikan acar kuning,0
-14,chicken blackpepper egg tortila,0
-14,opor ayam tanpa santan lengkap,0
-14,pangsit ayam kuah premium,0
-14,rawon surabaya sapi ayam,0
-14,ayam cabe ijo,0
-14,chicken bbq grill,0
+14,beef bulgogi,1
+14,pangsit ayam yamin yahun healthy,0
+14,ayam bakar bowl,0
+14,beef short ribs rendang special,0
+14,ayam suwir teriyaki,0
+14,soto betawi,0
+14,chicken honey healthy,0
+14,chicken woku,0
+14,chicken ball crispy premium,0
+14,dori saus mentega,0
+14,ayam saus wijen premium,0
+14,chicken blackpepper lengkap,0
+14,chicken truffle meatballs yellowfit,0
+14,soto betawi tanpa santan,0
+14,dori cabe garam premium,0
+14,sei ayam with lemonilo premium,0
+14,japanese beef gyudon with brown rice bowl,0
+14,grilled chicken 400 keal premium,0
+14,chicken steak diet,0
+14,konsumsi dada ayam healthy,0
+14,salmon red thai curry yellowfit,0
 15,dori salted egg,1
 15,chicken grill sambal matah,1
 15,dori sambal matah,1
-15,mac diet panas special special,0
-15,beef tofu teriyaki bowl,0
-15,cah tahu sapi,0
-15,sempol ayam grill bowl,0
-15,scotch egg,0
-15,kebab ayam,0
-15,mac diet panas special chef s choice,0
-15,buncis sapi lada hitam,0
-15,chicken katsu premium,0
+15,thai coconut curry baby corn signature,0
+15,brown rice ce apple tea saldo gopay diet,0
+15,ayam saus mentega box,0
+15,opor ayam tanpa santan,0
+15,pangsit ayam kuah,0
+15,chicken honey,0
 15,indonesian beef bakso,0
-15,ayam saus wijen,0
-15,pangsit ayam yamin yahun,0
-15,ayam betutu sambal matah deluxe,0
-15,soto betawi,0
-15,sapi cabe garam lengkap,0
-15,chicken soy garlic yangnyeom yellowfit,0
+15,pizza fit signature,0
+15,slow cooked beef signature,0
+15,ayam bumbu kari,0
+15,baked fish mozaru supreme,0
+15,dori oat saus wijen premium,0
+15,dietgo fried chicken bowl,0
 15,sei ayam with lemonilo premium,0
-15,rawon surabaya,0
-15,beef yakiniku,0
-15,ikan acar kuning,0
+15,healthy fried chicken diet,0
+15,dori saus mentega,0
+15,indonesian beef bakso special,0
+15,bola ayam saus asam pedas,0
+15,thai coconut curry baby corn,0
+15,ayam asam manis healthy chef s choice,0

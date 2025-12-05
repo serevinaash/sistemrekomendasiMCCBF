@@ -1,0 +1,376 @@
+user_id,menu_name,relevance,kalori_target,kategori_lauk,sumber_karbo,deskripsi_preferensi
+1,creamy chicken mushroom,1,395,ayam,nasi merah,rendah lemak panggang
+1,chicken curry,1,395,ayam,nasi merah,rendah lemak panggang
+1,ayam bakar padang,1,395,ayam,nasi merah,rendah lemak panggang
+1,sempol ayam grill,1,395,ayam,nasi merah,rendah lemak panggang
+1,sempol ayam grill,1,395,ayam,nasi merah,rendah lemak panggang
+1,with brown rice box,0,395,ayam,nasi merah,rendah lemak panggang
+1,torikatsu chicken ramen special,0,395,ayam,nasi merah,rendah lemak panggang
+1,healthy japanese sushi roll,0,395,ayam,nasi merah,rendah lemak panggang
+1,bola ayam saus asam pedas,0,395,ayam,nasi merah,rendah lemak panggang
+1,salmon red thai curry yellowfit,0,395,ayam,nasi merah,rendah lemak panggang
+1,thai coconut curry baby corn special,0,395,ayam,nasi merah,rendah lemak panggang
+1,sei ayam with potatoes premium,0,395,ayam,nasi merah,rendah lemak panggang
+1,opor susu legenda deluxe,0,395,ayam,nasi merah,rendah lemak panggang
+1,ayam sambel geprek bowl,0,395,ayam,nasi merah,rendah lemak panggang
+1,chicken teriyaki grill,0,395,ayam,nasi merah,rendah lemak panggang
+1,indonesian beef bakso signature,0,395,ayam,nasi merah,rendah lemak panggang
+1,beef yakiniku spesial,0,395,ayam,nasi merah,rendah lemak panggang
+1,fish stick saus wijen premium,0,395,ayam,nasi merah,rendah lemak panggang
+1,soto betawi ayam,0,395,ayam,nasi merah,rendah lemak panggang
+1,pangsit ayam kuah premium,0,395,ayam,nasi merah,rendah lemak panggang
+1,hamburg steak saus teriyaki,0,395,ayam,nasi merah,rendah lemak panggang
+1,beef short ribs rendang signature,0,395,ayam,nasi merah,rendah lemak panggang
+1,ayam asam manis healthy,0,395,ayam,nasi merah,rendah lemak panggang
+1,sapi cabe garam bowl,0,395,ayam,nasi merah,rendah lemak panggang
+1,ayam goreng kunyit chef s choice,0,395,ayam,nasi merah,rendah lemak panggang
+2,gulai ikan,1,400,ikan,kentang,tanpa santan bumbu pedas
+2,dori katsu balado,1,400,ikan,kentang,tanpa santan bumbu pedas
+2,dori sambal ijo,1,400,ikan,kentang,tanpa santan bumbu pedas
+2,ikan woku,1,400,ikan,kentang,tanpa santan bumbu pedas
+2,dori chips saus asam manis,1,400,ikan,kentang,tanpa santan bumbu pedas
+2,dori cabe garam bowl,0,400,ikan,kentang,tanpa santan bumbu pedas
+2,khao soi noodle supreme,0,400,ikan,kentang,tanpa santan bumbu pedas
+2,ayam maranggi,0,400,ikan,kentang,tanpa santan bumbu pedas
+2,ayam sambel geprek,0,400,ikan,kentang,tanpa santan bumbu pedas
+2,chicken soy garlic yangnyeom supreme,0,400,ikan,kentang,tanpa santan bumbu pedas
+2,bola ayam saus asam pedas,0,400,ikan,kentang,tanpa santan bumbu pedas
+2,dori katsu balado premium,0,400,ikan,kentang,tanpa santan bumbu pedas
+2,rolade ayam,0,400,ikan,kentang,tanpa santan bumbu pedas
+2,healthy fried chicken diet,0,400,ikan,kentang,tanpa santan bumbu pedas
+2,dori salted egg bowl,0,400,ikan,kentang,tanpa santan bumbu pedas
+2,japanese beef teriyaki bread supreme,0,400,ikan,kentang,tanpa santan bumbu pedas
+2,chicken woku bowl,0,400,ikan,kentang,tanpa santan bumbu pedas
+2,pizza fit chef s choice,0,400,ikan,kentang,tanpa santan bumbu pedas
+2,soto ayam spesial diet,0,400,ikan,kentang,tanpa santan bumbu pedas
+2,dori oat saus wijen,0,400,ikan,kentang,tanpa santan bumbu pedas
+2,chicken ball crispy premium,0,400,ikan,kentang,tanpa santan bumbu pedas
+2,indonesian beef bakso signature,0,400,ikan,kentang,tanpa santan bumbu pedas
+2,chicken ball blackpepper box,0,400,ikan,kentang,tanpa santan bumbu pedas
+2,chicken honey healthy,0,400,ikan,kentang,tanpa santan bumbu pedas
+2,opor susu legenda deluxe,0,400,ikan,kentang,tanpa santan bumbu pedas
+3,beef yakiniku,1,395,sapi,nasi putih,bumbu rempah korea yakiniku
+3,beef yakiniku,1,395,sapi,nasi putih,bumbu rempah korea yakiniku
+3,beef bulgogi,1,395,sapi,nasi putih,bumbu rempah korea yakiniku
+3,rawon surabaya,1,395,sapi,nasi putih,bumbu rempah korea yakiniku
+3,soto daging spesial,1,395,sapi,nasi putih,bumbu rempah korea yakiniku
+3,chicken potatoes bowl,0,395,sapi,nasi putih,bumbu rempah korea yakiniku
+3,bola daging teriyaki,0,395,sapi,nasi putih,bumbu rempah korea yakiniku
+3,chicken honey healthy,0,395,sapi,nasi putih,bumbu rempah korea yakiniku
+3,chicken truffle meatballs signature,0,395,sapi,nasi putih,bumbu rempah korea yakiniku
+3,ayam cabe ijo lengkap,0,395,sapi,nasi putih,bumbu rempah korea yakiniku
+3,ayam cabe ijo,0,395,sapi,nasi putih,bumbu rempah korea yakiniku
+3,dori oat saus wijen,0,395,sapi,nasi putih,bumbu rempah korea yakiniku
+3,chicken blackpepper lengkap,0,395,sapi,nasi putih,bumbu rempah korea yakiniku
+3,chicken blackpepper bowl,0,395,sapi,nasi putih,bumbu rempah korea yakiniku
+3,chicken blackpepper egg tortila,0,395,sapi,nasi putih,bumbu rempah korea yakiniku
+3,beef bulgogi healthy,0,395,sapi,nasi putih,bumbu rempah korea yakiniku
+3,salmon red thai curry yellowfit,0,395,sapi,nasi putih,bumbu rempah korea yakiniku
+3,opor susu legenda yellowfit,0,395,sapi,nasi putih,bumbu rempah korea yakiniku
+3,opor susu legenda chef s choice,0,395,sapi,nasi putih,bumbu rempah korea yakiniku
+3,grilled chicken sei sapi ayam penyet diet,0,395,sapi,nasi putih,bumbu rempah korea yakiniku
+3,beef short ribs rendang special,0,395,sapi,nasi putih,bumbu rempah korea yakiniku
+3,torikatsu chicken ramen chef s choice,0,395,sapi,nasi putih,bumbu rempah korea yakiniku
+3,cah buncis ayam,0,395,sapi,nasi putih,bumbu rempah korea yakiniku
+3,chicken ball woku lengkap,0,395,sapi,nasi putih,bumbu rempah korea yakiniku
+3,chicken rolade,0,395,sapi,nasi putih,bumbu rempah korea yakiniku
+4,chicken blackpepper,1,400,ayam,jagung,pedas lada hitam balado
+4,chicken blackpepper,1,400,ayam,jagung,pedas lada hitam balado
+4,chicken ball blackpepper,1,400,ayam,jagung,pedas lada hitam balado
+4,bola ayam saus asam pedas,1,400,ayam,jagung,pedas lada hitam balado
+4,chicken blackpepper egg tortila,1,400,ayam,jagung,pedas lada hitam balado
+4,chicken bbq grill,0,400,ayam,jagung,pedas lada hitam balado
+4,chicken patty crispy,0,400,ayam,jagung,pedas lada hitam balado
+4,slow cooked beef signature,0,400,ayam,jagung,pedas lada hitam balado
+4,mac diet panas special deluxe,0,400,ayam,jagung,pedas lada hitam balado
+4,prawn cake thailand sauce,0,400,ayam,jagung,pedas lada hitam balado
+4,kebab ayam,0,400,ayam,jagung,pedas lada hitam balado
+4,beef patty kastu,0,400,ayam,jagung,pedas lada hitam balado
+4,bola daging saus lada hitam diet,0,400,ayam,jagung,pedas lada hitam balado
+4,with brown rice box,0,400,ayam,jagung,pedas lada hitam balado
+4,baked chicken honey premium,0,400,ayam,jagung,pedas lada hitam balado
+4,ayam maranggi spesial,0,400,ayam,jagung,pedas lada hitam balado
+4,chicken crispy saus barbeque lengkap,0,400,ayam,jagung,pedas lada hitam balado
+4,fish stick saus wijen,0,400,ayam,jagung,pedas lada hitam balado
+4,healthy oseng mercon sapi yellowfit,0,400,ayam,jagung,pedas lada hitam balado
+4,ayam asam manis healthy yellowfit,0,400,ayam,jagung,pedas lada hitam balado
+4,baked chicken honey premium,0,400,ayam,jagung,pedas lada hitam balado
+4,ayam serundeng sambal korek,0,400,ayam,jagung,pedas lada hitam balado
+4,telur mata sapi balado special,0,400,ayam,jagung,pedas lada hitam balado
+4,soto bandung,0,400,ayam,jagung,pedas lada hitam balado
+4,beef short ribs rendang signature,0,400,ayam,jagung,pedas lada hitam balado
+5,dori saus mentega,1,395,ikan,ubi,saus manis pedas korea
+5,fish katsu saus manis pedas,1,395,ikan,ubi,saus manis pedas korea
+5,fish stick saus wijen,1,395,ikan,ubi,saus manis pedas korea
+5,dori oat saus wijen,1,395,ikan,ubi,saus manis pedas korea
+5,dori salted egg,1,395,ikan,ubi,saus manis pedas korea
+5,salmon red thai curry yellowfit,0,395,ikan,ubi,saus manis pedas korea
+5,chicken herbs grill egg tortila bowl,0,395,ikan,ubi,saus manis pedas korea
+5,bola daging saus lada hitam diet,0,395,ikan,ubi,saus manis pedas korea
+5,buncis sapi lada hitam,0,395,ikan,ubi,saus manis pedas korea
+5,chicken crispy saus barbeque lengkap,0,395,ikan,ubi,saus manis pedas korea
+5,khao soi noodle supreme,0,395,ikan,ubi,saus manis pedas korea
+5,ayam asam manis healthy,0,395,ikan,ubi,saus manis pedas korea
+5,japanese beef gyudon with lemonilo premium,0,395,ikan,ubi,saus manis pedas korea
+5,beef yakiniku spesial,0,395,ikan,ubi,saus manis pedas korea
+5,ayam asam manis healthy yellowfit,0,395,ikan,ubi,saus manis pedas korea
+5,chicken soy garlic yangnyeom yellowfit,0,395,ikan,ubi,saus manis pedas korea
+5,ayam asam manis healthy chef s choice,0,395,ikan,ubi,saus manis pedas korea
+5,slow cooked beef deluxe,0,395,ikan,ubi,saus manis pedas korea
+5,daging ayam bowl,0,395,ikan,ubi,saus manis pedas korea
+5,dori sambal matah healthy,0,395,ikan,ubi,saus manis pedas korea
+5,with brown rice with potate wedges healthy,0,395,ikan,ubi,saus manis pedas korea
+5,ayam goreng kunyit,0,395,ikan,ubi,saus manis pedas korea
+5,udang saus blackpepper chef s choice,0,395,ikan,ubi,saus manis pedas korea
+5,chicken tomyum,0,395,ikan,ubi,saus manis pedas korea
+5,beef tofu teriyaki bowl,0,395,ikan,ubi,saus manis pedas korea
+6,soto ayam kuning,1,400,ayam,kentang,kuah soto tanpa santan
+6,soto ayam spesial,1,400,ayam,kentang,kuah soto tanpa santan
+6,soto ayam spesial,1,400,ayam,kentang,kuah soto tanpa santan
+6,opor ayam tanpa santan,1,400,ayam,kentang,kuah soto tanpa santan
+6,chicken curry,1,400,ayam,kentang,kuah soto tanpa santan
+6,rawon surabaya lengkap,0,400,ayam,kentang,kuah soto tanpa santan
+6,soto ayam spesial spesial,0,400,ayam,kentang,kuah soto tanpa santan
+6,beef yakiniku,0,400,ayam,kentang,kuah soto tanpa santan
+6,opor susu legenda deluxe,0,400,ayam,kentang,kuah soto tanpa santan
+6,cheese buldak chicken yellowfit,0,400,ayam,kentang,kuah soto tanpa santan
+6,chicken ball crispy,0,400,ayam,kentang,kuah soto tanpa santan
+6,ayam serundeng sambal korek,0,400,ayam,kentang,kuah soto tanpa santan
+6,soto ayam spesial diet,0,400,ayam,kentang,kuah soto tanpa santan
+6,sapi cabe garam,0,400,ayam,kentang,kuah soto tanpa santan
+6,bola ayam saus asam pedas box,0,400,ayam,kentang,kuah soto tanpa santan
+6,pasta aglio eolio dori stick,0,400,ayam,kentang,kuah soto tanpa santan
+6,ayam asam manis healthy deluxe,0,400,ayam,kentang,kuah soto tanpa santan
+6,sempol ayam grill bowl,0,400,ayam,kentang,kuah soto tanpa santan
+6,baked chicken honey premium,0,400,ayam,kentang,kuah soto tanpa santan
+6,chicken honey healthy,0,400,ayam,kentang,kuah soto tanpa santan
+6,chicken patty crispy,0,400,ayam,kentang,kuah soto tanpa santan
+6,soto betawi tanpa santan premium,0,400,ayam,kentang,kuah soto tanpa santan
+6,rawon surabaya lengkap,0,400,ayam,kentang,kuah soto tanpa santan
+6,telur mata sapi balado supreme,0,400,ayam,kentang,kuah soto tanpa santan
+6,mac diet panas special signature,0,400,ayam,kentang,kuah soto tanpa santan
+7,sapi cabe garam,1,390,sapi,jagung,tumis sayur pedas
+7,beef yakiniku,1,390,sapi,jagung,tumis sayur pedas
+7,bistik sapi,1,390,sapi,jagung,tumis sayur pedas
+7,cah tahu sapi,1,390,sapi,jagung,tumis sayur pedas
+7,buncis sapi lada hitam,1,390,sapi,jagung,tumis sayur pedas
+7,chicken soy garlic yangnyeom yellowfit,0,390,sapi,jagung,tumis sayur pedas
+7,tumis ayam brokoli,0,390,sapi,jagung,tumis sayur pedas
+7,dori katsu saus asam manis,0,390,sapi,jagung,tumis sayur pedas
+7,baked fish mozaru special,0,390,sapi,jagung,tumis sayur pedas
+7,soto betawi ayam,0,390,sapi,jagung,tumis sayur pedas
+7,sempol ayam grill bowl,0,390,sapi,jagung,tumis sayur pedas
+7,japanese beef gyudon with lemonilo premium,0,390,sapi,jagung,tumis sayur pedas
+7,bistik bola sapi,0,390,sapi,jagung,tumis sayur pedas
+7,opor susu legenda yellowfit,0,390,sapi,jagung,tumis sayur pedas
+7,beef yakiniku spesial,0,390,sapi,jagung,tumis sayur pedas
+7,telur mata sapi balado supreme,0,390,sapi,jagung,tumis sayur pedas
+7,chicken woku bowl,0,390,sapi,jagung,tumis sayur pedas
+7,chicken ball crispy,0,390,sapi,jagung,tumis sayur pedas
+7,longbun with chicken blackpepper,0,390,sapi,jagung,tumis sayur pedas
+7,tumis ayam paprika box,0,390,sapi,jagung,tumis sayur pedas
+7,chicken herbs grill egg tortila bowl,0,390,sapi,jagung,tumis sayur pedas
+7,japanese beef gyudon with brown rice spesial,0,390,sapi,jagung,tumis sayur pedas
+7,healthy oseng mercon sapi chef s choice,0,390,sapi,jagung,tumis sayur pedas
+7,grilled chicken with lemonilo healthy,0,390,sapi,jagung,tumis sayur pedas
+7,with brown rice box,0,390,sapi,jagung,tumis sayur pedas
+8,dori saus mentega,1,395,ikan,nasi merah,katsu renyah saus
+8,fish katsu saus manis pedas,1,395,ikan,nasi merah,katsu renyah saus
+8,fish stick saus korea,1,395,ikan,nasi merah,katsu renyah saus
+8,dori chips saus asam manis,1,395,ikan,nasi merah,katsu renyah saus
+8,dori katsu saus asam manis,1,395,ikan,nasi merah,katsu renyah saus
+8,ayam betutu sambal matah deluxe,0,395,ikan,nasi merah,katsu renyah saus
+8,ayam saus wijen premium,0,395,ikan,nasi merah,katsu renyah saus
+8,scotch egg,0,395,ikan,nasi merah,katsu renyah saus
+8,chicken bbq grill,0,395,ikan,nasi merah,katsu renyah saus
+8,opor susu legenda yellowfit,0,395,ikan,nasi merah,katsu renyah saus
+8,chicken ball blackpepper,0,395,ikan,nasi merah,katsu renyah saus
+8,chicken crispy saus barbeque lengkap,0,395,ikan,nasi merah,katsu renyah saus
+8,spaghetti ayam geprek special,0,395,ikan,nasi merah,katsu renyah saus
+8,nasi uduk saus kacang supreme,0,395,ikan,nasi merah,katsu renyah saus
+8,daging ayam bowl,0,395,ikan,nasi merah,katsu renyah saus
+8,dori cabe garam,0,395,ikan,nasi merah,katsu renyah saus
+8,opor susu legenda chef s choice,0,395,ikan,nasi merah,katsu renyah saus
+8,grilled chicken with lemonilo healthy,0,395,ikan,nasi merah,katsu renyah saus
+8,healthy japanese sushi roll,0,395,ikan,nasi merah,katsu renyah saus
+8,ayam bakar bacem lengkap,0,395,ikan,nasi merah,katsu renyah saus
+8,ayam bakar padang spesial,0,395,ikan,nasi merah,katsu renyah saus
+8,dori katsu pasta aglio eolio,0,395,ikan,nasi merah,katsu renyah saus
+8,japanese beef gyudon with brown rice spesial,0,395,ikan,nasi merah,katsu renyah saus
+8,hamburg steak saus teriyaki chef s choice,0,395,ikan,nasi merah,katsu renyah saus
+8,bola daging saus lada hitam,0,395,ikan,nasi merah,katsu renyah saus
+9,opor ayam tanpa santan,1,400,ayam,kentang,bumbu serundeng kelapa
+9,chicken curry,1,400,ayam,kentang,bumbu serundeng kelapa
+9,soto ayam kuning,1,400,ayam,kentang,bumbu serundeng kelapa
+9,ayam bumbu kari,1,400,ayam,kentang,bumbu serundeng kelapa
+9,ayam serundeng,1,400,ayam,kentang,bumbu serundeng kelapa
+9,chicken egg okonomiyaki special,0,400,ayam,kentang,bumbu serundeng kelapa
+9,thai coconut curry baby corn,0,400,ayam,kentang,bumbu serundeng kelapa
+9,chicken blackpepper bowl,0,400,ayam,kentang,bumbu serundeng kelapa
+9,opor susu legenda deluxe,0,400,ayam,kentang,bumbu serundeng kelapa
+9,healthy japanese sushi roll,0,400,ayam,kentang,bumbu serundeng kelapa
+9,chicken grill sambal matah lengkap,0,400,ayam,kentang,bumbu serundeng kelapa
+9,baked chicken honey,0,400,ayam,kentang,bumbu serundeng kelapa
+9,rawon surabaya,0,400,ayam,kentang,bumbu serundeng kelapa
+9,prawn cake thailand sauce,0,400,ayam,kentang,bumbu serundeng kelapa
+9,dori sambal matah healthy,0,400,ayam,kentang,bumbu serundeng kelapa
+9,ikan sambal kecombrang chef s choice,0,400,ayam,kentang,bumbu serundeng kelapa
+9,chicken tomyum healthy,0,400,ayam,kentang,bumbu serundeng kelapa
+9,rolade ayam,0,400,ayam,kentang,bumbu serundeng kelapa
+9,dori katsu saus asam manis healthy,0,400,ayam,kentang,bumbu serundeng kelapa
+9,japanese beef teriyaki bread supreme,0,400,ayam,kentang,bumbu serundeng kelapa
+9,gulai ikan,0,400,ayam,kentang,bumbu serundeng kelapa
+9,soto ayam spesial,0,400,ayam,kentang,bumbu serundeng kelapa
+9,ayam goreng kunyit signature,0,400,ayam,kentang,bumbu serundeng kelapa
+9,udang saus blackpepper yellowfit,0,400,ayam,kentang,bumbu serundeng kelapa
+9,recharge with se l sapi lengkap,0,400,ayam,kentang,bumbu serundeng kelapa
+10,soto bandung,1,395,sapi,nasi putih,kuah soto bening
+10,soto bandung,1,395,sapi,nasi putih,kuah soto bening
+10,soto bandung,1,395,sapi,nasi putih,kuah soto bening
+10,soto bandung,1,395,sapi,nasi putih,kuah soto bening
+10,soto betawi,1,395,sapi,nasi putih,kuah soto bening
+10,ayam goreng kunyit signature,0,395,sapi,nasi putih,kuah soto bening
+10,ayam goreng kunyit signature,0,395,sapi,nasi putih,kuah soto bening
+10,japanese beef gyudon with lemonilo premium,0,395,sapi,nasi putih,kuah soto bening
+10,sapi cabe garam lengkap,0,395,sapi,nasi putih,kuah soto bening
+10,chicken woku bowl,0,395,sapi,nasi putih,kuah soto bening
+10,khao soi noodle supreme,0,395,sapi,nasi putih,kuah soto bening
+10,sempol ayam grill bowl,0,395,sapi,nasi putih,kuah soto bening
+10,fish stick saus korea spesial,0,395,sapi,nasi putih,kuah soto bening
+10,chicken teriyaki grill lengkap,0,395,sapi,nasi putih,kuah soto bening
+10,egg tortila baked chicken honey,0,395,sapi,nasi putih,kuah soto bening
+10,tumis ayam paprika box,0,395,sapi,nasi putih,kuah soto bening
+10,scotch egg,0,395,sapi,nasi putih,kuah soto bening
+10,beef burger,0,395,sapi,nasi putih,kuah soto bening
+10,sei sapi with potatoes diet,0,395,sapi,nasi putih,kuah soto bening
+10,chicken blackpepper healthy,0,395,sapi,nasi putih,kuah soto bening
+10,mac diet panas special chef s choice,0,395,sapi,nasi putih,kuah soto bening
+10,sei sapi with potatoes diet,0,395,sapi,nasi putih,kuah soto bening
+10,torikatsu chicken ramen special,0,395,sapi,nasi putih,kuah soto bening
+10,hamburg steak saus teriyaki,0,395,sapi,nasi putih,kuah soto bening
+10,ayam asam manis healthy,0,395,sapi,nasi putih,kuah soto bening
+11,bola ayam crispy,1,390,ayam,jagung,salad segar rendah lemak
+11,chicken katsu,1,390,ayam,jagung,salad segar rendah lemak
+11,sempol ayam grill,1,390,ayam,jagung,salad segar rendah lemak
+11,chicken ball crispy,1,390,ayam,jagung,salad segar rendah lemak
+11,chicken patty crispy,1,390,ayam,jagung,salad segar rendah lemak
+11,dori sambal matah diet,0,390,ayam,jagung,salad segar rendah lemak
+11,baked fish mozaru supreme,0,390,ayam,jagung,salad segar rendah lemak
+11,thai coconut curry baby corn deluxe,0,390,ayam,jagung,salad segar rendah lemak
+11,dori katsu saus asam manis premium,0,390,ayam,jagung,salad segar rendah lemak
+11,dori katsu balado premium,0,390,ayam,jagung,salad segar rendah lemak
+11,chicken woku bowl,0,390,ayam,jagung,salad segar rendah lemak
+11,bola ayam saus asam pedas box,0,390,ayam,jagung,salad segar rendah lemak
+11,gulai ikan healthy,0,390,ayam,jagung,salad segar rendah lemak
+11,pizza fit chef s choice,0,390,ayam,jagung,salad segar rendah lemak
+11,ayam goreng kunyit signature,0,390,ayam,jagung,salad segar rendah lemak
+11,mie ayam sehat spesial,0,390,ayam,jagung,salad segar rendah lemak
+11,chicken truffle meatballs signature,0,390,ayam,jagung,salad segar rendah lemak
+11,fish stick saus korea spesial,0,390,ayam,jagung,salad segar rendah lemak
+11,dori chips saus asam manis lengkap,0,390,ayam,jagung,salad segar rendah lemak
+11,thai coconut curry baby corn signature,0,390,ayam,jagung,salad segar rendah lemak
+11,sei sapi with potatoes diet,0,390,ayam,jagung,salad segar rendah lemak
+11,dori sambal matah healthy,0,390,ayam,jagung,salad segar rendah lemak
+11,ayam maranggi spesial,0,390,ayam,jagung,salad segar rendah lemak
+11,japanese beef gyudon with lemonilo premium,0,390,ayam,jagung,salad segar rendah lemak
+11,healthy japanese sushi roll,0,390,ayam,jagung,salad segar rendah lemak
+12,gulai ikan,1,400,ikan,kentang,gulai bumbu kuning
+12,ikan acar kuning,1,400,ikan,kentang,gulai bumbu kuning
+12,dori katsu balado,1,400,ikan,kentang,gulai bumbu kuning
+12,dori sambal ijo,1,400,ikan,kentang,gulai bumbu kuning
+12,ikan woku,1,400,ikan,kentang,gulai bumbu kuning
+12,dori katsu balado spesial,0,400,ikan,kentang,gulai bumbu kuning
+12,chicken salted egg,0,400,ikan,kentang,gulai bumbu kuning
+12,cah brokoli ayam,0,400,ikan,kentang,gulai bumbu kuning
+12,chicken grill sambal matah,0,400,ikan,kentang,gulai bumbu kuning
+12,hamburg steak saus teriyaki,0,400,ikan,kentang,gulai bumbu kuning
+12,nasi uduk saus kacang supreme,0,400,ikan,kentang,gulai bumbu kuning
+12,beef yakiniku box,0,400,ikan,kentang,gulai bumbu kuning
+12,sapi cabe garam lengkap,0,400,ikan,kentang,gulai bumbu kuning
+12,beef burger diet,0,400,ikan,kentang,gulai bumbu kuning
+12,thai coconut curry baby corn special,0,400,ikan,kentang,gulai bumbu kuning
+12,japanese beef teriyaki bread supreme,0,400,ikan,kentang,gulai bumbu kuning
+12,beef yakiniku spesial,0,400,ikan,kentang,gulai bumbu kuning
+12,bola daging saus lada hitam,0,400,ikan,kentang,gulai bumbu kuning
+12,dori oat saus asam manis diet,0,400,ikan,kentang,gulai bumbu kuning
+12,ayam cabe ijo,0,400,ikan,kentang,gulai bumbu kuning
+12,ayam betutu sambal matah yellowfit,0,400,ikan,kentang,gulai bumbu kuning
+12,beef bulgogi,0,400,ikan,kentang,gulai bumbu kuning
+12,sempol ayam grill,0,400,ikan,kentang,gulai bumbu kuning
+12,ayam balado,0,400,ikan,kentang,gulai bumbu kuning
+12,ayam bakar padang spesial,0,400,ikan,kentang,gulai bumbu kuning
+13,ayam saus mentega,1,395,ayam,nasi merah,saus teriyaki korea
+13,chicken karage saus korea,1,395,ayam,nasi merah,saus teriyaki korea
+13,ayam saus mentega,1,395,ayam,nasi merah,saus teriyaki korea
+13,chicken teriyaki grill,1,395,ayam,nasi merah,saus teriyaki korea
+13,ayam suwir teriyaki,1,395,ayam,nasi merah,saus teriyaki korea
+13,beef burger diet,0,395,ayam,nasi merah,saus teriyaki korea
+13,soto ayam spesial spesial,0,395,ayam,nasi merah,saus teriyaki korea
+13,chicken ball blackpepper,0,395,ayam,nasi merah,saus teriyaki korea
+13,scotch egg,0,395,ayam,nasi merah,saus teriyaki korea
+13,dori cabe garam,0,395,ayam,nasi merah,saus teriyaki korea
+13,mac diet panas special special,0,395,ayam,nasi merah,saus teriyaki korea
+13,dori oat saus asam manis diet,0,395,ayam,nasi merah,saus teriyaki korea
+13,chicken salted egg,0,395,ayam,nasi merah,saus teriyaki korea
+13,fish stick saus korea,0,395,ayam,nasi merah,saus teriyaki korea
+13,chicken blackpepper,0,395,ayam,nasi merah,saus teriyaki korea
+13,soto betawi,0,395,ayam,nasi merah,saus teriyaki korea
+13,sei sapi with lemonilo premium,0,395,ayam,nasi merah,saus teriyaki korea
+13,hamburg steak saus teriyaki,0,395,ayam,nasi merah,saus teriyaki korea
+13,dori katsu saus asam manis healthy,0,395,ayam,nasi merah,saus teriyaki korea
+13,ayam betutu sambal matah,0,395,ayam,nasi merah,saus teriyaki korea
+13,dori katsu balado spesial,0,395,ayam,nasi merah,saus teriyaki korea
+13,chicken herbs grill egg tortila bowl,0,395,ayam,nasi merah,saus teriyaki korea
+13,chicken soy garlic yangnyeom supreme,0,395,ayam,nasi merah,saus teriyaki korea
+13,fish stick saus wijen,0,395,ayam,nasi merah,saus teriyaki korea
+13,scotch egg,0,395,ayam,nasi merah,saus teriyaki korea
+14,brokoli sapi lada hitam,1,400,sapi,jagung,bulgogi korea lada hitam
+14,buncis sapi lada hitam,1,400,sapi,jagung,bulgogi korea lada hitam
+14,bola daging saus lada hitam,1,400,sapi,jagung,bulgogi korea lada hitam
+14,beef bulgogi,1,400,sapi,jagung,bulgogi korea lada hitam
+14,cah sapi buncis,1,400,sapi,jagung,bulgogi korea lada hitam
+14,tumis ayam brokoli,0,400,sapi,jagung,bulgogi korea lada hitam
+14,egg tortila baked chicken honey,0,400,sapi,jagung,bulgogi korea lada hitam
+14,baked chicken honey,0,400,sapi,jagung,bulgogi korea lada hitam
+14,chicken ball blackpepper box,0,400,sapi,jagung,bulgogi korea lada hitam
+14,ayam asam manis healthy,0,400,sapi,jagung,bulgogi korea lada hitam
+14,mac diet panas special yellowfit,0,400,sapi,jagung,bulgogi korea lada hitam
+14,beef patty kastu,0,400,sapi,jagung,bulgogi korea lada hitam
+14,cah brokoli ayam,0,400,sapi,jagung,bulgogi korea lada hitam
+14,chicken bbq grill,0,400,sapi,jagung,bulgogi korea lada hitam
+14,ayam saus mentega diet,0,400,sapi,jagung,bulgogi korea lada hitam
+14,ayam bakar padang,0,400,sapi,jagung,bulgogi korea lada hitam
+14,dori stick premium,0,400,sapi,jagung,bulgogi korea lada hitam
+14,nasi uduk saus kacang supreme,0,400,sapi,jagung,bulgogi korea lada hitam
+14,chicken soy garlic yangnyeom deluxe,0,400,sapi,jagung,bulgogi korea lada hitam
+14,baked fish mozaru,0,400,sapi,jagung,bulgogi korea lada hitam
+14,pasta aglio eolio dori stick diet,0,400,sapi,jagung,bulgogi korea lada hitam
+14,chicken truffle meatballs yellowfit,0,400,sapi,jagung,bulgogi korea lada hitam
+14,thai coconut curry baby corn chef s choice,0,400,sapi,jagung,bulgogi korea lada hitam
+14,japanese beef teriyaki bread supreme,0,400,sapi,jagung,bulgogi korea lada hitam
+14,torikatsu chicken ramen signature,0,400,sapi,jagung,bulgogi korea lada hitam
+15,dori sambal matah,1,390,ikan,ubi,sambal matah segar
+15,chicken grill sambal matah,1,390,ikan,ubi,sambal matah segar
+15,dori sambal matah,1,390,ikan,ubi,sambal matah segar
+15,chicken grill sambal matah,1,390,ikan,ubi,sambal matah segar
+15,dori salted egg,1,390,ikan,ubi,sambal matah segar
+15,pizza fit signature,0,390,ikan,ubi,sambal matah segar
+15,ayam cabe ijo lengkap,0,390,ikan,ubi,sambal matah segar
+15,ayam maranggi,0,390,ikan,ubi,sambal matah segar
+15,hamburg steak saus teriyaki chef s choice,0,390,ikan,ubi,sambal matah segar
+15,dori katsu balado,0,390,ikan,ubi,sambal matah segar
+15,chicken karage saus korea,0,390,ikan,ubi,sambal matah segar
+15,opor susu legenda chef s choice,0,390,ikan,ubi,sambal matah segar
+15,beef patty bbq,0,390,ikan,ubi,sambal matah segar
+15,cah sapi buncis,0,390,ikan,ubi,sambal matah segar
+15,beef tofu teriyaki,0,390,ikan,ubi,sambal matah segar
+15,khao soi noodle special,0,390,ikan,ubi,sambal matah segar
+15,japanese beef teriyaki bread,0,390,ikan,ubi,sambal matah segar
+15,sapi cabe garam box,0,390,ikan,ubi,sambal matah segar
+15,chicken woku bowl,0,390,ikan,ubi,sambal matah segar
+15,cah tahu sapi,0,390,ikan,ubi,sambal matah segar
+15,dori cabe garam premium,0,390,ikan,ubi,sambal matah segar
+15,hamburg steak saus teriyaki,0,390,ikan,ubi,sambal matah segar
+15,opor susu legenda deluxe,0,390,ikan,ubi,sambal matah segar
+15,baked fish mozaru special,0,390,ikan,ubi,sambal matah segar
+15,baked fish mozaru,0,390,ikan,ubi,sambal matah segar
