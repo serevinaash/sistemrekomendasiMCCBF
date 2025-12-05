@@ -211,6 +211,81 @@ class MCCBFEngine:
 
         return min(0.35, len(matched) * 0.10)  # ✅ BOOST multiplier
 
+    def compute_feature_vector(self, query_text, target_calories, kategori_lauk, allowed_karbo, menu_id):
+        """
+        Feature vector untuk RandomForest
+        versi optimal (super rich features)
+        """
+        row = self.df[self.df["Menu_ID"] == menu_id].iloc[0]
+
+        # 1. Basic menu info
+        kalori_menu = row["Kalori"]
+        kategori_menu = row["Kategori"]
+        karbo_menu = row["Karbo_List"]
+
+        # 2. Similarity components (MCCBF)
+        sim_kalori = self.sim_gaussian(kalori_menu, target_calories)
+        sim_kategori = 1.0 if kategori_menu.lower() == kategori_lauk.lower() else 0.0
+        sim_karbo = len(set(karbo_menu).intersection(set(allowed_karbo))) / max(len(karbo_menu), 1)
+
+        # 3. TF-IDF similarity (text-based)
+        text_query = self.clean_text(query_text)
+        text_menu = self.clean_text(row["text_combined"])
+        sim_text = self.sim_tfidf(text_query, text_menu)
+
+        # 4. Aggregate MCCBF score (weighted)
+        w = self.weights
+        mccbf_score = (
+            w["kalori"] * sim_kalori +
+            w["kategori"] * sim_kategori +
+            w["karbo"] * sim_karbo +
+            w["text"] * sim_text
+        )
+
+        # 5. Additional features (VERY PREDICTIVE)
+        abs_kalori_diff = abs(kalori_menu - target_calories)
+        karbo_match_count = len(set(karbo_menu).intersection(set(allowed_karbo)))
+        kategori_match_flag = 1 if kategori_menu.lower() == kategori_lauk.lower() else 0
+
+        # 6. Output vector
+        return [
+            sim_kalori,
+            sim_kategori,
+            sim_karbo,
+            sim_text,
+            mccbf_score,
+            abs_kalori_diff,
+            karbo_match_count,
+            kategori_match_flag,
+            kalori_menu,
+        ]
+    def clean_text(self, text):
+        if pd.isna(text):
+            return ""
+        text = str(text).lower()
+        text = re.sub(r"[^a-z0-9 ]", " ", text)
+        text = " ".join([w for w in text.split() if w not in STOPWORDS_ID])
+        return text
+
+    def sim_tfidf(self, text_q, text_m):
+        if not text_q or not text_m:
+            return 0.0
+        try:
+            vec_q = self.vectorizer.transform([text_q])
+            vec_m = self.vectorizer.transform([text_m])
+            sim = cosine_similarity(vec_q, vec_m)[0][0]
+            return float(sim)
+        except:
+            return 0.0
+
+    def sim_gaussian(self, val1, val2, sigma=30):
+        try:
+            diff = abs(float(val1) - float(val2))
+            return math.exp(-(diff ** 2) / (2 * sigma ** 2))
+        except:
+            return 0.0
+
+
     # =============================================================
     # RECOMMENDATIONS CORE
     # =============================================================
