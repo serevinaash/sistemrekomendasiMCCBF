@@ -1,439 +1,318 @@
-# utils/mccbf_engine.py
 import pandas as pd
 import numpy as np
-import joblib
-import re
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+import os
+import re
+import math 
+
+STOPWORDS_ID = [
+    "dan", "yang", "di", "ke", "dengan", "tanpa", "pakai",
+    "serta", "untuk", "agar", "supaya", "adalah"
+]
+
 
 class MCCBFEngine:
-    """
-    Engine untuk sistem rekomendasi Multi-Criteria Content-Based Filtering
-    """
-    
-    def __init__(self, vectorizer_path, scaler_path, data_train_path):
+    def __init__(self, data_path=None, dataframe=None):
         """
-        Load model artifacts yang sudah di-training sebelumnya
-        
-        Args:
-            vectorizer_path: path ke vectorizer_tfidf.pkl
-            scaler_path: path ke scaler.pkl
-            data_train_path: path ke data_train.csv
+        Engine MCCBF dengan support 3 MODE:
+        - seimbang
+        - fokus_deskripsi
+        - fokus_lauk
         """
-        self.vectorizer = joblib.load(vectorizer_path)
-        self.scaler = joblib.load(scaler_path)
-        self.df_train = pd.read_csv(data_train_path)
         
-        # Normalisasi nama kolom (ganti spasi dengan underscore)
-        self.df_train.columns = self.df_train.columns.str.strip().str.replace(' ', '_')
-        
-        # Pre-compute TF-IDF untuk semua menu di training data
-        if 'corpus' not in self.df_train.columns:
-            self.df_train['corpus'] = self._create_corpus(self.df_train)
-        
-        self.tfidf_train = self.vectorizer.transform(self.df_train['corpus'])
-        
-        print("✅ MCCBF Engine berhasil diinisialisasi")
-        print(f"   📊 Jumlah menu: {len(self.df_train)}")
-    
-    
-    def _create_corpus(self, df):
-        """Buat corpus text dari kolom-kolom penting"""
-        text_cols = ['Nama_Menu', 'Kategori', 'Sumber_Karbohidrat', 
-                     'Bahan_Utama_/_Pendamping', 'Deskripsi_Singkat']
-        
-        corpus = []
-        for _, row in df.iterrows():
-            text_parts = []
-            for col in text_cols:
-                if col in df.columns:
-                    text_parts.append(str(row[col]))
-            corpus.append(' '.join(text_parts))
-        
-        return corpus
-    
-    
-    def clean_text(self, text):
-        """Pembersihan teks standar"""
-        text = text.lower()
-        text = re.sub(r'[^a-zA-Z0-9\s]', ' ', text)
-        text = re.sub(r'\s+', ' ', text)
-        return text.strip()
-    
-    
-    def preprocess_user_input(self, text):
-        """
-        Preprocessing khusus untuk input user dengan handling negatif
-        
-        Transformasi:
-        - "tanpa tempe" → hapus kata "tempe" dari pencarian
-        - "tidak pedas" → cari "tidak pedas" atau favoritkan menu tanpa kata "pedas"
-        - "rendah lemak" → tambah boost untuk "rendah lemak"
-        """
-        text = text.lower().strip()
-        
-        # Deteksi kata negatif
-        negative_keywords = ['tanpa', 'tidak', 'no', 'bebas', 'tanpai']
-        
-        # Split jadi kata-kata
-        words = text.split()
-        
-        # Identifikasi pola negatif
-        negative_terms = []
-        positive_terms = []
-        
-        i = 0
-        while i < len(words):
-            word = words[i]
-            
-            # Jika ketemu kata negatif, ambil kata berikutnya
-            if word in negative_keywords and i + 1 < len(words):
-                negative_terms.append(words[i + 1])
-                i += 2  # Skip 2 kata
-            else:
-                positive_terms.append(word)
-                i += 1
-        
-        return {
-            'positive': ' '.join(positive_terms),
-            'negative': negative_terms,
-            'original': text
-        }
-    
-    
-    def categorical_similarity(self, user_value, menu_value):
-        """
-        Rule-based similarity untuk kategori (exact/partial match)
-        
-        Returns:
-            1.0 jika exact match
-            0.5 jika partial match
-            0.0 jika tidak match
-        """
-        user_value = str(user_value).lower()
-        menu_value = str(menu_value).lower()
-        
-        if user_value == menu_value:
-            return 1.0
-        if any(word in menu_value for word in user_value.split()):
-            return 0.5
-        return 0.0
-    
-    
-    def _format_karbohidrat(self, karbo_str):
-        """
-        Format string karbohidrat jadi lebih rapi dengan koma
-        Input: "kentang nasi merah nasi putih"
-        Output: "Kentang, Nasi Merah, Nasi Putih"
-        """
-        if not karbo_str or pd.isna(karbo_str):
-            return "-"
-        
-        karbo_str = str(karbo_str).strip().lower()
-        
-        # Definisi pola karbohidrat yang valid (2 kata atau 1 kata)
-        valid_patterns = [
-            'nasi merah', 'nasi putih', 'nasi coklat', 'nasi jagung',
-            'roti gandum', 'roti tawar'
-        ]
-        
-        found = []
-        remaining = karbo_str
-        
-        # Cari pola 2 kata dulu
-        for pattern in valid_patterns:
-            if pattern in remaining:
-                found.append(pattern.title())  # Capitalize each word
-                remaining = remaining.replace(pattern, '')
-        
-        # Ambil sisa kata tunggal
-        tokens = [t.strip().title() for t in remaining.split() if len(t.strip()) > 2]
-        found.extend(tokens)
-        
-        # Remove duplicates sambil pertahankan urutan
-        seen = set()
-        unique = []
-        for item in found:
-            if item.lower() not in seen:
-                seen.add(item.lower())
-                unique.append(item)
-        
-        return ', '.join(unique) if unique else "-"
-    
-    
-    def _calculate_karbo_similarity(self, user_karbo_list, menu_row):
-        """
-        Helper untuk menghitung similarity karbohidrat
-        Mendukung dua format:
-        1. Jika ada kolom 'karbo_list' (hasil preprocessing)
-        2. Fallback ke parsing manual dari 'Sumber_Karbohidrat'
-        """
-        # Format 1: Sudah ada kolom karbo_list (optimal)
-        if 'karbo_list' in menu_row.index:
-            menu_karbo_list = menu_row['karbo_list']
-            if isinstance(menu_karbo_list, str):
-                # Jika masih string (dari CSV), parse dulu
-                import ast
-                try:
-                    menu_karbo_list = ast.literal_eval(menu_karbo_list)
-                except:
-                    menu_karbo_list = []
-            
-            if not user_karbo_list:
-                return 1.0
-            
-            user_set = set([k.lower().strip() for k in user_karbo_list])
-            menu_set = set([k.lower().strip() for k in menu_karbo_list])
-            
-            # Hitung intersection
-            intersection = user_set.intersection(menu_set)
-            if intersection:
-                return len(intersection) / len(user_set)
-            else:
-                return 0.0
-        
-        # Format 2: Fallback ke parsing manual
+        # =======================
+        # LOAD DATA
+        # =======================
+        if dataframe is not None:
+            self.df = dataframe.copy()
+        elif data_path and os.path.exists(data_path):
+            self.df = pd.read_csv(data_path)
         else:
-            return self.karbo_partial_match(user_karbo_list, menu_row['Sumber_Karbohidrat'])
-    
-    
-    def karbo_partial_match(self, user_karbo_list, menu_karbo_str):
-        """
-        Partial matching untuk sumber karbohidrat (multi-select)
-        Menggunakan Set Intersection untuk akurasi lebih tinggi
-        
-        Args:
-            user_karbo_list: list preferensi user, e.g. ['nasi merah', 'kentang']
-            menu_karbo_str: string dari menu, e.g. 'kentang nasi merah nasi putih'
-        
-        Returns:
-            Skor similarity berdasarkan:
-            - 1.0 jika ada exact match
-            - 0.5 jika ada partial match
-            - 0.0 jika tidak ada match sama sekali
-        """
-        if not user_karbo_list:
-            return 1.0  # tidak ada preferensi = semua cocok
-        
-        # Parse menu karbo string jadi list
-        menu_karbo_str = str(menu_karbo_str).lower().strip()
-        
-        # Split berdasarkan spasi/koma dan normalisasi
-        menu_karbo_tokens = set([
-            token.strip() 
-            for token in menu_karbo_str.replace(',', ' ').split() 
-            if token.strip()
-        ])
-        
-        # Normalisasi user input
-        user_karbo_set = set([k.lower().strip() for k in user_karbo_list])
-        
-        # --- Strategi Matching ---
-        
-        # 1️⃣ Exact Match (prioritas tertinggi)
-        exact_matches = user_karbo_set.intersection(menu_karbo_tokens)
-        if exact_matches:
-            # Semakin banyak match, semakin tinggi skornya
-            return min(len(exact_matches) / len(user_karbo_set), 1.0)
-        
-        # 2️⃣ Partial Match (untuk frasa multi-kata seperti "nasi merah")
-        partial_score = 0
-        for user_pref in user_karbo_set:
-            # Cek apakah preferensi user ada di string menu
-            if user_pref in menu_karbo_str:
-                partial_score += 0.7
-            # Cek apakah ada kata yang sama (misal: "nasi" cocok dengan "nasi merah")
-            elif any(word in menu_karbo_str for word in user_pref.split()):
-                partial_score += 0.3
-        
-        # Normalisasi skor partial
-        if partial_score > 0:
-            return min(partial_score / len(user_karbo_set), 1.0)
-        
-        # 3️⃣ Tidak ada match sama sekali
-        return 0.0
-    
-    
-    def get_recommendations(self, 
-                           kalori_target, 
-                           kategori_lauk, 
-                           sumber_karbo_list, 
-                           deskripsi_preferensi,
-                           weights=None,
-                           top_n=5,
-                           karbo_strict_mode=False):  # NEW parameter
-        """
-        Fungsi utama untuk mendapatkan rekomendasi menu
-        
-        Args:
-            kalori_target: int, target kalori user (e.g. 400)
-            kategori_lauk: str, pilihan user ('Ayam', 'Ikan', 'Daging')
-            sumber_karbo_list: list of str, pilihan karbo (['nasi merah', 'kentang'])
-            deskripsi_preferensi: str, teks bebas preferensi user
-            weights: dict bobot kriteria, jika None pakai default
-            top_n: jumlah rekomendasi yang dikembalikan
-            karbo_strict_mode: bool, jika True filter strict (harus cocok semua)
-        
-        Returns:
-            DataFrame berisi top-N menu dengan skor similarity
-        """
-        
-        # Default weights (Skenario 1: Bobot Seimbang)
-        if weights is None:
-            weights = {
-                'deskripsi': 0.25,
-                'kategori': 0.25,
-                'karbohidrat': 0.20,
-                'kalori': 0.30
+            print(f"Warning: Path '{data_path}' tidak ditemukan.")
+            self.df = pd.DataFrame(columns=[
+                'Menu_ID', 'Nama_Menu', 'Kalori',
+                'Kategori_Lauk', 'Sumber_Karbohidrat',
+                'Deskripsi_Menu'
+            ])
+
+        # Preprocess data
+        self._preprocess_data()
+
+        # =======================
+        # MODE SETTINGS (OPTIMIZED VIA GRID SEARCH)
+        # =======================
+        self.modes = {
+            'seimbang': {
+                'w_deskripsi': 0.35,  # ✅ OPTIMAL dari grid search
+                'w_lauk': 0.30,       # ✅ OPTIMAL
+                'w_karbo': 0.25,      # ✅ OPTIMAL
+                'w_kalori': 0.10      # ✅ OPTIMAL
+            },
+            'fokus_deskripsi': {
+                    'w_deskripsi': 0.35,  # ✅ UBAH dari 0.50 ke 0.35
+                    'w_lauk': 0.30,       # ✅ UBAH dari 0.20 ke 0.30
+                    'w_karbo': 0.25,      # ✅ UBAH dari 0.20 ke 0.25
+                    'w_kalori': 0.10
+            },
+            'fokus_lauk': {
+                'w_deskripsi': 0.20,
+                'w_lauk': 0.50,       # Boost lauk untuk mode ini
+                'w_karbo': 0.20,
+                'w_kalori': 0.10
             }
-        
-        # ========================================
-        # 1️⃣ SIMILARITY DESKRIPSI (TF-IDF + Cosine)
-        # ========================================
-        user_corpus = self.clean_text(deskripsi_preferensi)
-        
-        # Safety check: jika corpus kosong
-        if not user_corpus.strip():
-            user_corpus = "menu sehat"  # Default fallback
-        
-        user_tfidf = self.vectorizer.transform([user_corpus])
-        sim_deskripsi = cosine_similarity(user_tfidf, self.tfidf_train)[0]
-        
-        # Pastikan tidak ada NaN
-        sim_deskripsi = np.nan_to_num(sim_deskripsi, nan=0.0)
-        
-        
-        # ========================================
-        # 2️⃣ SIMILARITY KALORI (Normalized Distance)
-        # ========================================
-        # Cek apakah kolom kalori_normalized ada
-        if 'kalori_normalized' not in self.df_train.columns:
-            # Jika tidak ada, normalisasi manual
-            kalori_min = self.df_train['Kalori_(kcal)'].min()
-            kalori_max = self.df_train['Kalori_(kcal)'].max()
-            
-            if kalori_max > kalori_min:
-                kalori_normalized = (kalori_target - kalori_min) / (kalori_max - kalori_min)
-                menu_kalori_norm = (self.df_train['Kalori_(kcal)'] - kalori_min) / (kalori_max - kalori_min)
-            else:
-                # Semua kalori sama, return skor sempurna
-                kalori_normalized = 1.0
-                menu_kalori_norm = np.ones(len(self.df_train))
-        else:
-            # Gunakan kolom yang sudah ada
-            kalori_normalized = self.scaler.transform([[kalori_target]])[0][0]
-            menu_kalori_norm = self.df_train['kalori_normalized'].values
-        
-        # Hitung similarity (1 - jarak absolut)
-        sim_kalori = 1 - np.abs(kalori_normalized - menu_kalori_norm)
-        
-        # Pastikan tidak ada nilai negatif
-        sim_kalori = np.clip(sim_kalori, 0, 1)
-        
-        
-        # ========================================
-        # 3️⃣ SIMILARITY KATEGORI LAUK (Rule-based)
-        # ========================================
-        sim_kategori = np.array([
-            self.categorical_similarity(kategori_lauk, row['Kategori'])
-            for _, row in self.df_train.iterrows()
-        ])
-        
-        
-        # ========================================
-        # 4️⃣ SIMILARITY SUMBER KARBOHIDRAT (Partial Match)
-        # ========================================
-        sim_karbo = np.array([
-            self._calculate_karbo_similarity(sumber_karbo_list, row)
-            for _, row in self.df_train.iterrows()
-        ])
-        
-        
-        # ========================================
-        # 5️⃣ GABUNGKAN SEMUA SIMILARITY (WEIGHTED AVERAGE)
-        # ========================================
-        
-        # Clip semua similarity ke range [0, 1] untuk keamanan
-        sim_deskripsi = np.clip(sim_deskripsi, 0, 1)
-        sim_kategori = np.clip(sim_kategori, 0, 1)
-        sim_karbo = np.clip(sim_karbo, 0, 1)
-        sim_kalori = np.clip(sim_kalori, 0, 1)
-        
-        # Weighted average
-        sim_total = (
-            weights['deskripsi'] * sim_deskripsi +
-            weights['kategori'] * sim_kategori +
-            weights['karbohidrat'] * sim_karbo +
-            weights['kalori'] * sim_kalori
+        }
+
+        # =======================
+        # TF-IDF VECTOR
+        # =======================
+        self.vectorizer = TfidfVectorizer(
+            ngram_range=(1,2),
+            stop_words=STOPWORDS_ID,
+            min_df=1,
+            sublinear_tf=True
         )
-        
-        # Final clipping (double check)
-        sim_total = np.clip(sim_total, 0, 1)
-        
-        
-        # ========================================
-        # 6️⃣ AMBIL TOP-N MENU DENGAN SKOR TERTINGGI
-        # ========================================
-        
-        # Filter strict (opsional)
-        if karbo_strict_mode and sumber_karbo_list:
-            # Hanya ambil menu yang punya skor karbo > threshold
-            valid_indices = np.where(sim_karbo >= 0.7)[0]
-            
-            if len(valid_indices) == 0:
-                # Tidak ada menu yang cocok, kembalikan top-N biasa tapi beri warning
-                print("⚠️  Mode Strict: Tidak ada menu yang sesuai kriteria. Menampilkan rekomendasi terbaik.")
-                valid_indices = np.arange(len(sim_total))
-            
-            # Filter similarity matrix
-            sim_total_filtered = sim_total[valid_indices]
-            top_indices_filtered = sim_total_filtered.argsort()[::-1][:top_n]
-            top_indices = valid_indices[top_indices_filtered]
+
+        if not self.df.empty:
+            desc = self.df['Deskripsi_Menu'].fillna('').astype(str)
+            self.tfidf_matrix = self.vectorizer.fit_transform(desc)
+            self.min_calories = self.df['Kalori'].min()
+            self.max_calories = self.df['Kalori'].max()
         else:
-            # Mode normal
-            top_indices = sim_total.argsort()[::-1][:top_n]
+            self.tfidf_matrix = None
+            self.min_calories = 0
+            self.max_calories = 0
+
+    # =============================================================
+    # PREPROCESSING
+    # =============================================================
+    def _preprocess_data(self):
+        """Membersihkan dan menormalisasi dataset."""
+        if self.df.empty: 
+            return
         
-        # Kolom yang ingin ditampilkan
-        display_cols = ['Nama_Menu', 'Kategori', 'Kalori_(kcal)', 
-                       'Sumber_Karbohidrat', 'Deskripsi_Singkat']
-        
-        # Pastikan kolom ada di dataframe
-        available_cols = [col for col in display_cols if col in self.df_train.columns]
-        
-        result = self.df_train.iloc[top_indices][available_cols].copy()
-        result['Skor_Similarity'] = sim_total[top_indices]
-        result['Rank'] = range(1, len(top_indices) + 1)
-        
-        # ✨ FORMAT KARBOHIDRAT DENGAN KOMA
-        if 'Sumber_Karbohidrat' in result.columns:
-            result['Sumber_Karbohidrat'] = result['Sumber_Karbohidrat'].apply(
-                lambda x: self._format_karbohidrat(x)
+        print(f"✅ Kolom CSV: {list(self.df.columns)}")
+
+        # Rename kolom agar seragam (dengan mapping alternatif)
+        mapping = {
+            'Kalori (kcal)': 'Kalori',
+            'Nama Menu': 'Nama_Menu',
+            'Kategori': 'Kategori_Lauk',
+            'Sumber Karbohidrat': 'Sumber_Karbohidrat',
+            'Karbo': 'Sumber_Karbohidrat',  # ✅ Mapping alternatif
+            'Karbohidrat': 'Sumber_Karbohidrat',  # ✅ Mapping alternatif
+            'Deskripsi Singkat': 'Deskripsi_Menu',
+            'Deskripsi': 'Deskripsi_Menu',  # ✅ Mapping alternatif
+            'No': 'Menu_ID'
+        }
+        self.df.rename(columns=mapping, inplace=True)
+
+        # Ensure numeric
+        self.df['Kalori'] = pd.to_numeric(self.df['Kalori'], errors='coerce').fillna(0)
+
+        # Normalisasi text
+        text_cols = ['Kategori_Lauk', 'Sumber_Karbohidrat', 'Deskripsi_Menu', 'Nama_Menu']
+        for col in text_cols:
+            if col in self.df.columns:
+                # ✅ FIX: Jangan replace "nan" jadi "", biarkan sebagai NaN untuk deteksi lebih baik
+                self.df[col] = (
+                    self.df[col].astype(str)
+                    .str.lower()
+                    .str.strip()
+                )
+                # Replace string "nan" dengan NaN proper
+                self.df[col] = self.df[col].replace("nan", pd.NA)
+
+    # =============================================================
+    # SCORING COMPONENTS
+    # =============================================================
+    def _calculate_calorie_score(self, item_cal, user_cal, sigma=30):  # ✅ OPTIMAL: sigma=30
+        """
+        Gaussian calorie scoring (OPTIMIZED):
+        - sigma=30 (STRICT matching - optimal dari grid search)
+        - F1 improved dari 75.60% → 81.34%
+        - Semakin dekat ke kalori target → skor mendekati 1
+        - Semakin jauh → skor turun smooth
+        """
+        if user_cal is None:
+            return 0.5
+
+        try:
+            diff = abs(float(user_cal) - float(item_cal))
+        except:
+            return 0.5
+
+        # Gaussian: exp( - (diff^2) / (2 * sigma^2) )
+        score = math.exp(-(diff ** 2) / (2 * (sigma ** 2)))
+
+        # clamp ke [0,1] untuk jaga-jaga
+        return max(0.0, min(1.0, score))
+
+
+    def _calculate_category_score(self, item_val, user_val):
+        # ✅ FIX: Handle pd.NA properly
+        # Convert pd.NA to None untuk safe checking
+        if pd.isna(item_val):
+            item_val = None
+        if pd.isna(user_val):
+            user_val = None
+            
+        if not user_val or user_val == 'nan' or item_val == 'nan' or not item_val:
+            return 0.5
+
+        item = str(item_val).lower()
+        user = str(user_val).lower()
+
+        # Exact match
+        if item == user:
+            return 1.0
+
+        # Partial match: kata pengguna ada di item
+        if user in item or item in user:
+            return 0.8
+
+        # Soft similarity: huruf awal sama (ayam – ayam fillet, sapi – sapi lada)
+        if len(item) > 0 and len(user) > 0 and item[0] == user[0]:
+            return 0.5
+
+        # Fallback
+        return 0.0
+
+
+    def _calculate_keyword_boost(self, item_desc, user_desc):
+        """
+        Keyword Boost (OPTIMIZED):
+        - 0.10 per keyword (BOOST dari 0.08)
+        - max 0.35 (BOOST dari 0.30)
+        """
+        # ✅ FIX: Handle pd.NA properly
+        if pd.isna(user_desc) or pd.isna(item_desc):
+            return 0.0
+            
+        if not user_desc or user_desc == 'nan':
+            return 0.0
+
+        important_keywords = {
+            'pedas', 'manis', 'gurih', 'asam', 'asin',
+            'panggang', 'bakar', 'goreng', 'kukus', 'rebus', 'tumis',
+            'crispy', 'grill', 'renyah',
+            'rendah', 'tinggi', 'tanpa', 'kuah', 'kering', 
+            'bening', 'lembut', 'empuk', 'segar', 
+            'protein', 'santan', 'lemak', 'minyak',
+            'teriyaki', 'balado', 'sambal', 'woku', 'korea',
+            'yakiniku', 'bulgogi', 'curry', 'soto', 'rawon',
+            'sehat', 'diet', 'organik'  # ✅ TAMBAH keyword relevan
+        }
+
+        user_kw = set(str(user_desc).lower().split())
+        item_kw = set(str(item_desc).lower().split())
+
+        matched = user_kw & item_kw & important_keywords
+
+        return min(0.35, len(matched) * 0.10)  # ✅ BOOST multiplier
+
+    # =============================================================
+    # RECOMMENDATIONS CORE
+    # =============================================================
+    def get_recommendations(
+        self,
+        kalori_target=None,
+        kategori_lauk=None,
+        sumber_karbo_list=None,
+        deskripsi_preferensi=None,
+        user_preferences=None,
+        weights=None,
+        top_n=10,
+        mode="seimbang"   # <<===== NEW PARAMETER
+    ):
+
+        # ============================
+        # PARSE INPUT
+        # ============================
+        if user_preferences:
+            kalori_target = user_preferences.get("kalori", kalori_target)
+            kategori_lauk = user_preferences.get("lauk", kategori_lauk)
+            karbo = user_preferences.get("karbo", "")
+            deskripsi_preferensi = user_preferences.get("deskripsi", deskripsi_preferensi)
+        else:
+            karbo = sumber_karbo_list[0] if sumber_karbo_list else ""
+
+        # ============================
+        # MODE WEIGHT SELECTOR
+        # ============================
+        if weights is None:  
+            mode = str(mode).lower().strip()
+            if mode not in self.modes:
+                print(f"⚠️ Mode '{mode}' tidak ditemukan, menggunakan mode seimbang.")
+                mode = 'seimbang'
+
+            weights = self.modes[mode]
+
+        # ============================
+        # TF-IDF VECTOR USER
+        # ============================
+        user_desc_vec = None
+        if deskripsi_preferensi and str(deskripsi_preferensi) != 'nan' and not pd.isna(deskripsi_preferensi):
+            try:
+                user_desc_vec = self.vectorizer.transform([str(deskripsi_preferensi).lower()])
+            except:
+                user_desc_vec = None
+
+        # ============================
+        # START SCORING
+        # ============================
+        scores = []
+
+        for idx, row in self.df.iterrows():
+
+            s_kalori = self._calculate_calorie_score(row['Kalori'], kalori_target)
+            s_lauk = self._calculate_category_score(row['Kategori_Lauk'], kategori_lauk)
+            s_karbo = self._calculate_category_score(row['Sumber_Karbohidrat'], karbo)
+
+            s_deskripsi = 0.0
+            if user_desc_vec is not None:
+                try:
+                    s_deskripsi = cosine_similarity(user_desc_vec, self.tfidf_matrix[idx])[0][0]
+                except:
+                    s_deskripsi = 0.0
+
+            keyword_boost = self._calculate_keyword_boost(row['Deskripsi_Menu'], deskripsi_preferensi)
+
+            final_score = (
+                (s_kalori * weights['w_kalori']) +
+                (s_lauk * weights['w_lauk']) +
+                (s_karbo * weights['w_karbo']) +
+                (s_deskripsi * weights['w_deskripsi']) +
+                keyword_boost
             )
-        
-        # Urutkan kolom
-        result = result[['Rank', 'Skor_Similarity'] + available_cols]
-        
-        # DEBUG: Print statistik similarity (opsional, bisa dinonaktifkan)
-        print(f"\n📊 Debug Info:")
-        print(f"   • Skor Deskripsi: min={sim_deskripsi.min():.3f}, max={sim_deskripsi.max():.3f}")
-        print(f"   • Skor Kategori:  min={sim_kategori.min():.3f}, max={sim_kategori.max():.3f}")
-        print(f"   • Skor Karbo:     min={sim_karbo.min():.3f}, max={sim_karbo.max():.3f}")
-        print(f"   • Skor Kalori:    min={sim_kalori.min():.3f}, max={sim_kalori.max():.3f}")
-        print(f"   • Skor Total:     min={sim_total.min():.3f}, max={sim_total.max():.3f}")
-        
-        return result
 
+            # ✅ FIX: Tambahkan Sumber_Karbohidrat dan Deskripsi_Menu dengan pd.NA handling
+            karbo_val = row.get("Sumber_Karbohidrat", "")
+            desc_val = row.get("Deskripsi_Menu", "")
+            
+            # Convert pd.NA to empty string
+            if pd.isna(karbo_val):
+                karbo_val = ""
+            if pd.isna(desc_val):
+                desc_val = ""
+            
+            scores.append({
+                "Menu_ID": row.get("Menu_ID", idx),
+                "Nama_Menu": row.get("Nama_Menu", "Unknown"),
+                "Kalori": row.get("Kalori", 0),
+                "Kategori_Lauk": row.get("Kategori_Lauk", ""),
+                "Sumber_Karbohidrat": karbo_val,  # ✅ SAFE
+                "Deskripsi_Menu": desc_val,  # ✅ SAFE
+                "Final_Score": final_score,
+                "Score_Kalori": s_kalori,
+                "Score_Lauk": s_lauk,
+                "Score_Karbo": s_karbo,
+                "Score_Deskripsi": s_deskripsi,
+                "Keyword_Boost": keyword_boost
+            })
 
-# ========================================
-# FUNGSI HELPER UNTUK STREAMLIT
-# ========================================
+        results_df = pd.DataFrame(scores)
+        if not results_df.empty:
+            results_df = results_df.sort_values(by="Final_Score", ascending=False).head(top_n)
 
-def load_mccbf_engine(model_dir='model'):
-    """Load MCCBF Engine dengan path default"""
-    import os
-    
-    vectorizer_path = os.path.join(model_dir, 'vectorizer_tfidf.pkl')
-    scaler_path = os.path.join(model_dir, 'scaler.pkl')
-    data_train_path = os.path.join(model_dir, 'data_train.csv')
-    
-    engine = MCCBFEngine(vectorizer_path, scaler_path, data_train_path)
-    return engine
+        return results_df

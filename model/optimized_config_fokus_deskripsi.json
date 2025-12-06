@@ -1,0 +1,12 @@
+{
+  "mode": "fokus_deskripsi",
+  "weights": {
+    "w_deskripsi": 0.35,
+    "w_lauk": 0.3,
+    "w_karbo": 0.25,
+    "w_kalori": 0.1
+  },
+  "sigma": 30,
+  "f1_score": 0.8001058201058201,
+  "improvement": 0.07410582010582012
+}

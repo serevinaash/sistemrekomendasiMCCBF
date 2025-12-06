@@ -1,0 +1,15 @@
+{
+  "mode": "seimbang",
+  "weights": {
+    "w_deskripsi": 0.35,
+    "w_lauk": 0.3,
+    "w_karbo": 0.25,
+    "w_kalori": 0.1
+  },
+  "sigma": 30,
+  "keyword_boost_per": 0.08,
+  "keyword_boost_max": 0.3,
+  "final_f1": 0.8030687830687832,
+  "final_precision": 0.8177777777777778,
+  "final_recall": 0.8000000000000002
+}
